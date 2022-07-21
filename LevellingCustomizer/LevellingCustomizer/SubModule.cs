@@ -104,6 +104,14 @@ namespace LevellingCustomizer
         [SettingPropertyGroup("{=LC_Settings_Group_BABCC52183}Attributes & Focus Points", GroupOrder = 2)]
         public float FocusExtraLearningRate { get; set; } = 0f;
 
+        [SettingProperty("{=LC_Settings_Name_2365E1286F}Min Learning Rate Per Attribute", -100f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_2365E1286F}Sets minimum learning rate based on attribute. This is added to base game value.", Order = 4)]
+        [SettingPropertyGroup("{=LC_Settings_Group_BABCC52183}Attributes & Focus Points", GroupOrder = 2)]
+        public float AttrMinLearningRate { get; set; } = 0f;
+
+        [SettingProperty("{=LC_Settings_Name_BCC3C27303}Min Learning Rate Per Focus Point", -100f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_BCC3C27303}Sets minimum learning rate based on focus points. This is added to base game value.", Order = 5)]
+        [SettingPropertyGroup("{=LC_Settings_Group_BABCC52183}Attributes & Focus Points", GroupOrder = 2)]
+        public float FocusMinLearningRate { get; set; } = 0f;
+
         #endregion
 
         #region Learning Limit (Applies to All Heroes)
@@ -324,6 +332,10 @@ namespace LevellingCustomizer
             var focusExtraLearningRate = (MySettings.Instance?.FocusExtraLearningRate ?? 0f) * focusValue;
             learningRate.AddFactor(attrExtraLearningRate / learningRate.BaseNumber, new TextObject("{=LC_Attr_Learning_Rate_Factor}(Mod) Attribute", null));
             learningRate.AddFactor(focusExtraLearningRate / learningRate.BaseNumber, new TextObject("{=LC_Focus_Learning_Rate_Factor}(Mod) Focus", null));
+
+            var attrMinLearningRate = (MySettings.Instance?.AttrMinLearningRate ?? 0f) * attributeValue;
+            var focusMinLearningRate = (MySettings.Instance?.FocusMinLearningRate ?? 0f) * focusValue;
+            learningRate.LimitMin(learningRate.LimitMinValue + attrMinLearningRate + focusMinLearningRate);
         }
 
         public static float CalculateSkillXpMultiplier(Hero hero, SkillObject skill, int skillValue)
