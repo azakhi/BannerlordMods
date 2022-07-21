@@ -40,6 +40,8 @@ namespace LevellingCustomizer
                 new HarmonyMethod(typeof(SkillXpPatch).GetMethod(nameof(SkillXpPatch.InitializeValuesPostfix))));
             harmony.Patch(typeof(SkillVM).GetMethod("RefreshWithCurrentValues", BindingFlags.Public | BindingFlags.Instance), null,
                 new HarmonyMethod(typeof(SkillXpPatch).GetMethod(nameof(SkillXpPatch.RefreshWithCurrentValuesPostfix))));
+            harmony.Patch(typeof(DefaultCharacterDevelopmentModel).GetMethod("CalculateLearningLimit", BindingFlags.Public | BindingFlags.Instance), null,
+                new HarmonyMethod(typeof(SkillXpPatch).GetMethod(nameof(SkillXpPatch.CalculateLearningLimitPostfix))));
             harmony.Patch(typeof(DefaultCharacterDevelopmentModel).GetMethod("CalculateLearningRate", new Type[] {typeof(Hero), typeof(SkillObject)}), null,
                 new HarmonyMethod(typeof(SkillXpPatch).GetMethod(nameof(SkillXpPatch.CalculateLearningRatePostfix))));
         }
@@ -66,104 +68,132 @@ namespace LevellingCustomizer
 
         #region General
 
-        [SettingProperty("{=LC_Settings_Name_DE1F5FA}Apply To", RequireRestart = false, HintText = "{=LC_Settings_Desc_DE1F5FA}Select which heroes general customizations should apply to.", Order = 1)]
-        [SettingPropertyGroup("{=LC_Settings_Group_7B73632D}General", GroupOrder = 1)]
+        [SettingProperty("{=LC_Settings_Name_567E405D89}Apply To", RequireRestart = false, HintText = "{=LC_Settings_Desc_567E405D89}Select which heroes general customizations should apply to.", Order = 1)]
+        [SettingPropertyGroup("{=LC_Settings_Group_0DB377921F}General", GroupOrder = 1)]
         public DropdownDefault<string> GeneralApplyTo { get; set; } = new DropdownDefault<string>(new string[] { "All Heroes", "Player", "Player & Companions" }, selectedIndex: 0);
 
-        [SettingProperty("{=LC_Settings_Name_B9759480}Levelling XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_B9759480}The multiplier for levelling XP gained.", Order = 2)]
-        [SettingPropertyGroup("{=LC_Settings_Group_7B73632D}General", GroupOrder = 1)]
+        [SettingProperty("{=LC_Settings_Name_1122D38AAE}Levelling XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_1122D38AAE}The multiplier for levelling XP gained.", Order = 2)]
+        [SettingPropertyGroup("{=LC_Settings_Group_0DB377921F}General", GroupOrder = 1)]
         public float LevellingXPMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_77E9E64B}Levelling Smoothing Level", -40, 40, RequireRestart = false, HintText = "{=LC_Settings_Desc_77E9E64B}The level of exponential smoothing of Character Level requirement.", Order = 3)]
-        [SettingPropertyGroup("{=LC_Settings_Group_7B73632D}General", GroupOrder = 1)]
+        [SettingProperty("{=LC_Settings_Name_BC96BC6657}Levelling Smoothing Level", -40, 40, RequireRestart = false, HintText = "{=LC_Settings_Desc_BC96BC6657}The level of exponential smoothing of Character Level requirement.", Order = 3)]
+        [SettingPropertyGroup("{=LC_Settings_Group_0DB377921F}General", GroupOrder = 1)]
         public int LevellingSmoothingLevel { get; set; } = 0;
 
-        [SettingProperty("{=LC_Settings_Name_3BFC8463}Skill XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_3BFC8463}The multiplier for all skill XP gained.", Order = 4)]
-        [SettingPropertyGroup("{=LC_Settings_Group_7B73632D}General", GroupOrder = 1)]
+        [SettingProperty("{=LC_Settings_Name_FF9DE8BCF2}Skill XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_FF9DE8BCF2}The multiplier for all skill XP gained.", Order = 4)]
+        [SettingPropertyGroup("{=LC_Settings_Group_0DB377921F}General", GroupOrder = 1)]
         public float SkillXPMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_6BBC6D7A}Skill Smoothing Level", -40, 40, RequireRestart = false, HintText = "{=LC_Settings_Desc_6BBC6D7A}The level of exponential smoothing of Skill Level requirement.", Order = 5)]
-        [SettingPropertyGroup("{=LC_Settings_Group_7B73632D}General", GroupOrder = 1)]
+        [SettingProperty("{=LC_Settings_Name_0700EF4DA7}Skill Smoothing Level", -40, 40, RequireRestart = false, HintText = "{=LC_Settings_Desc_0700EF4DA7}The level of exponential smoothing of Skill Level requirement.", Order = 5)]
+        [SettingPropertyGroup("{=LC_Settings_Group_0DB377921F}General", GroupOrder = 1)]
         public int SkillSmoothingLevel { get; set; } = 0;
+
+        #endregion
+
+        #region Attributes & Focus Points
+
+        [SettingProperty("{=LC_Settings_Name_567E405D89}Apply To", RequireRestart = false, HintText = "{=LC_Settings_Desc_567E405D89}Select which heroes attribute & focus points customizations should apply to.", Order = 1)]
+        [SettingPropertyGroup("{=LC_Settings_Group_BABCC52183}Attributes & Focus Points", GroupOrder = 2)]
+        public DropdownDefault<string> AttrFocusApplyTo { get; set; } = new DropdownDefault<string>(new string[] { "All Heroes", "Player", "Player & Companions" }, selectedIndex: 0);
+
+        [SettingProperty("{=LC_Settings_Name_BAF9A66B74}Extra Learning Rate Per Attribute", -100f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_BAF9A66B74}This is added to base game value.", Order = 2)]
+        [SettingPropertyGroup("{=LC_Settings_Group_BABCC52183}Attributes & Focus Points", GroupOrder = 2)]
+        public float AttrExtraLearningRate { get; set; } = 0f;
+
+        [SettingProperty("{=LC_Settings_Name_BF0CD17D57}Extra Learning Rate Per Focus Point", -100f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_BF0CD17D57}This is added to base game value.", Order = 3)]
+        [SettingPropertyGroup("{=LC_Settings_Group_BABCC52183}Attributes & Focus Points", GroupOrder = 2)]
+        public float FocusExtraLearningRate { get; set; } = 0f;
+
+        #endregion
+
+        #region Learning Limit (Applies to All Heroes)
+
+        [SettingProperty("{=LC_Settings_Name_26DF5A5313}Extra Learning Limit Per Attribute", -100, 100, RequireRestart = false, HintText = "{=LC_Settings_Desc_26DF5A5313}This is added to base game value. Per point above 1, similar to the game.", Order = 1)]
+        [SettingPropertyGroup("{=LC_Settings_Group_FE1E9D5DE8}Learning Limit (Applies to All Heroes)", GroupOrder = 3)]
+        public int AttrExtraLearningLimit { get; set; } = 0;
+
+        [SettingProperty("{=LC_Settings_Name_EF0584D028}Extra Learning Limit Per Focus Point", -100, 100, RequireRestart = false, HintText = "{=LC_Settings_Desc_EF0584D028}This is added to base game value.", Order = 2)]
+        [SettingPropertyGroup("{=LC_Settings_Group_FE1E9D5DE8}Learning Limit (Applies to All Heroes)", GroupOrder = 3)]
+        public int FocusExtraLearningLimit { get; set; } = 0;
 
         #endregion
 
         #region Skill Specific
 
-        [SettingProperty("{=LC_Settings_Name_DE1F5FA}Apply To", RequireRestart = false, HintText = "{=LC_Settings_Desc_DE1F5FA}Select which heroes skill specific customizations should apply to.", Order = 1)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_567E405D89}Apply To", RequireRestart = false, HintText = "{=LC_Settings_Desc_567E405D89}Select which heroes skill specific customizations should apply to.", Order = 1)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public DropdownDefault<string> SkillApplyTo { get; set; } = new DropdownDefault<string>(new string[] { "All Heroes", "Player", "Player & Companions" }, selectedIndex: 0);
 
-        [SettingProperty("{=LC_Settings_Name_1F582182}One Handed XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_1F582182}The multiplier for all One Handed skill XP gained.", Order = 2)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_47CF2A6D2A}One Handed XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_47CF2A6D2A}The multiplier for all One Handed skill XP gained.", Order = 2)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float OneHandedMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_9D0F64A9}Two Handed XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_9D0F64A9}The multiplier for all Two Handed skill XP gained.", Order = 3)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_9C6F1469A2}Two Handed XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_9C6F1469A2}The multiplier for all Two Handed skill XP gained.", Order = 3)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float TwoHandedMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_453DE0D2}Polearm XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_453DE0D2}The multiplier for all Polearm skill XP gained.", Order = 4)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_204AB46677}Polearm XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_204AB46677}The multiplier for all Polearm skill XP gained.", Order = 4)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float PolearmMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_E5AF882D}Bow XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_E5AF882D}The multiplier for all Bow skill XP gained.", Order = 5)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_D53C239005}Bow XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_D53C239005}The multiplier for all Bow skill XP gained.", Order = 5)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float BowMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_7093A51C}Crossbow XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_7093A51C}The multiplier for all Crossbow skill XP gained.", Order = 6)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_EDCAE8AB36}Crossbow XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_EDCAE8AB36}The multiplier for all Crossbow skill XP gained.", Order = 6)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float CrossbowMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_FF6EF4CD}Throwing XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_FF6EF4CD}The multiplier for all Throwing skill XP gained.", Order = 7)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_58A5B85B28}Throwing XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_58A5B85B28}The multiplier for all Throwing skill XP gained.", Order = 7)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float ThrowingMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_E21B2F33}Riding XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_E21B2F33}The multiplier for all Riding skill XP gained.", Order = 8)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_EF9AECE92E}Riding XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_EF9AECE92E}The multiplier for all Riding skill XP gained.", Order = 8)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float RidingMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_96B72755}Athletics XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_96B72755}The multiplier for all Athletics skill XP gained.", Order = 9)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_B43BFA5644}Athletics XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_B43BFA5644}The multiplier for all Athletics skill XP gained.", Order = 9)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float AthleticsMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_49DC4B4}Smithing XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_49DC4B4}The multiplier for all Smithing skill XP gained.", Order = 10)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_65C93EC53A}Smithing XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_65C93EC53A}The multiplier for all Smithing skill XP gained.", Order = 10)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float SmithingMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_B5D922C0}Scouting XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_B5D922C0}The multiplier for all Scouting skill XP gained.", Order = 11)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_7C01F561FC}Scouting XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_7C01F561FC}The multiplier for all Scouting skill XP gained.", Order = 11)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float ScoutingMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_8599339C}Tactics XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_8599339C}The multiplier for all Tactics skill XP gained.", Order = 12)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_D7341675DF}Tactics XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_D7341675DF}The multiplier for all Tactics skill XP gained.", Order = 12)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float TacticsMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_90CFE18A}Roguery XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_90CFE18A}The multiplier for all Roguery skill XP gained.", Order = 13)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_B2264D9242}Roguery XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_B2264D9242}The multiplier for all Roguery skill XP gained.", Order = 13)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float RogueryMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_D6E4C0CB}Charm XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_D6E4C0CB}The multiplier for all Charm skill XP gained.", Order = 14)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_A5B8DB588D}Charm XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_A5B8DB588D}The multiplier for all Charm skill XP gained.", Order = 14)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float CharmMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_F81E1FCB}Leadership XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_F81E1FCB}The multiplier for all Leadership skill XP gained.", Order = 15)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_7A66BFE971}Leadership XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_7A66BFE971}The multiplier for all Leadership skill XP gained.", Order = 15)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float LeadershipMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_FFECEB6}Trade XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_FFECEB6}The multiplier for all Trade skill XP gained.", Order = 16)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_C641645018}Trade XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_C641645018}The multiplier for all Trade skill XP gained.", Order = 16)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float TradeMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_A60B9ADB}Steward XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_A60B9ADB}The multiplier for all Steward skill XP gained.", Order = 17)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_3C1619BE9F}Steward XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_3C1619BE9F}The multiplier for all Steward skill XP gained.", Order = 17)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float StewardMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_75F8A597}Medicine XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_75F8A597}The multiplier for all Medicine skill XP gained.", Order = 18)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_0C2BE0D112}Medicine XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_0C2BE0D112}The multiplier for all Medicine skill XP gained.", Order = 18)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float MedicineMultiplier { get; set; } = 1f;
 
-        [SettingProperty("{=LC_Settings_Name_BA2AB631}Engineering XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_BA2AB631}The multiplier for all Engineering skill XP gained.", Order = 19)]
-        [SettingPropertyGroup("{=LC_Settings_Group_57915826}Skill Specific", GroupOrder = 2)]
+        [SettingProperty("{=LC_Settings_Name_D13C1A1B68}Engineering XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_D13C1A1B68}The multiplier for all Engineering skill XP gained.", Order = 19)]
+        [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
         public float EngineeringMultiplier { get; set; } = 1f;
 
         #endregion
@@ -233,9 +263,21 @@ namespace LevellingCustomizer
             __instance.LearningRate = learningRate;
         }
 
+        public static void CalculateLearningLimitPostfix(ref ExplainedNumber __result, int attributeValue, int focusValue, TextObject attributeName, bool includeDescriptions = false)
+        {
+            var attrExtraLearningLimit = MySettings.Instance?.AttrExtraLearningLimit ?? 0;
+            var focusExtraLearningLimit = MySettings.Instance?.FocusExtraLearningLimit ?? 0;
+            __result.Add((attributeValue - 1) * attrExtraLearningLimit, new TextObject("{=LC_Attr_Learning_Limit_Add}(Mod) Attribute", null), null);
+            __result.Add(focusValue * focusExtraLearningLimit, new TextObject("{=LC_Focus_Learning_Limit_Add}(Mod) Focus", null), null);
+        }
+
         public static void CalculateLearningRatePostfix(ref float __result, Hero hero, SkillObject skill)
         {
             var skillValue = hero.GetSkillValue(skill);
+            var attributeValue = hero.GetAttributeValue(skill.CharacterAttribute);
+            var focusValue = hero.HeroDeveloper.GetFocus(skill);
+            GetAttrFocusExtraLearningRate(hero, out float attrExtraLearningRate, out float focusExtraLearningRate, attributeValue, focusValue);
+            __result += attrExtraLearningRate + focusExtraLearningRate;
             var multiplier = CalculateSkillXpMultiplier(hero, skill, skillValue);
             __result *= multiplier;
         }
@@ -260,6 +302,9 @@ namespace LevellingCustomizer
         {
             var attributeName = skill.CharacterAttribute.Name;
             var learningRate = Campaign.Current.Models.CharacterDevelopmentModel.CalculateLearningRate(attributeValue, focusValue, skillValue, characterLevel, attributeName, includeDescriptions);
+            GetAttrFocusExtraLearningRate(hero, out float attrExtraLearningRate, out float focusExtraLearningRate, attributeValue, focusValue);
+            learningRate.AddFactor(attrExtraLearningRate / learningRate.BaseNumber, new TextObject("{=LC_Attr_Learning_Rate_Factor}(Mod) Attribute", null));
+            learningRate.AddFactor(focusExtraLearningRate / learningRate.BaseNumber, new TextObject("{=LC_Focus_Learning_Rate_Factor}(Mod) Focus", null));
             var multiplier = 0f;
             if (learningRate.ResultNumber > 0f)
             {
@@ -268,6 +313,20 @@ namespace LevellingCustomizer
 
             learningRate.AddFactor(multiplier, new TextObject("{=LC_Learning_Rate_Factor}(Mod) Levelling Customizer", null));
             return learningRate;
+        }
+
+        public static void GetAttrFocusExtraLearningRate(Hero hero, out float attrExtraLearningRate, out float focusExtraLearningRate, int attributeValue, int focusValue)
+        {
+            attrExtraLearningRate = 0f;
+            focusExtraLearningRate = 0f;
+            var applyTo = MySettings.Instance?.AttrFocusApplyTo?.SelectedIndex ?? 0;
+            if ((applyTo == 1 && !hero.IsHumanPlayerCharacter) || (applyTo == 2 && !hero.IsHumanPlayerCharacter && !hero.IsPlayerCompanion))
+            {
+                return;
+            }
+
+            attrExtraLearningRate = (MySettings.Instance?.AttrExtraLearningRate ?? 0f) * attributeValue;
+            focusExtraLearningRate = (MySettings.Instance?.FocusExtraLearningRate ?? 0f) * focusValue;
         }
 
         public static float CalculateSkillXpMultiplier(Hero hero, SkillObject skill, int skillValue)
