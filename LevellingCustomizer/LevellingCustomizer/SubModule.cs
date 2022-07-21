@@ -42,8 +42,8 @@ namespace LevellingCustomizer
                 new HarmonyMethod(typeof(SkillXpPatch).GetMethod(nameof(SkillXpPatch.RefreshWithCurrentValuesPostfix))));
             harmony.Patch(typeof(DefaultCharacterDevelopmentModel).GetMethod("CalculateLearningLimit", BindingFlags.Public | BindingFlags.Instance), null,
                 new HarmonyMethod(typeof(SkillXpPatch).GetMethod(nameof(SkillXpPatch.CalculateLearningLimitPostfix))));
-            harmony.Patch(typeof(DefaultCharacterDevelopmentModel).GetMethod("CalculateLearningRate", new Type[] {typeof(Hero), typeof(SkillObject)}), null,
-                new HarmonyMethod(typeof(SkillXpPatch).GetMethod(nameof(SkillXpPatch.CalculateLearningRatePostfix))));
+            harmony.Patch(typeof(DefaultCharacterDevelopmentModel).GetMethod("CalculateLearningRate", new Type[] {typeof(Hero), typeof(SkillObject)}),
+                new HarmonyMethod(typeof(SkillXpPatch).GetMethod(nameof(SkillXpPatch.CalculateLearningRatePrefix))));
         }
 
         protected override void OnSubModuleUnloaded()
@@ -271,15 +271,14 @@ namespace LevellingCustomizer
             __result.Add(focusValue * focusExtraLearningLimit, new TextObject("{=LC_Focus_Learning_Limit_Add}(Mod) Focus", null), null);
         }
 
-        public static void CalculateLearningRatePostfix(ref float __result, Hero hero, SkillObject skill)
+        public static bool CalculateLearningRatePrefix(ref float __result, Hero hero, SkillObject skill)
         {
             var skillValue = hero.GetSkillValue(skill);
             var attributeValue = hero.GetAttributeValue(skill.CharacterAttribute);
             var focusValue = hero.HeroDeveloper.GetFocus(skill);
-            GetAttrFocusExtraLearningRate(hero, out float attrExtraLearningRate, out float focusExtraLearningRate, attributeValue, focusValue);
-            __result += attrExtraLearningRate + focusExtraLearningRate;
-            var multiplier = CalculateSkillXpMultiplier(hero, skill, skillValue);
-            __result *= multiplier;
+            var learningRate = CalculateLearningRate(hero, skill, attributeValue, focusValue, skillValue, hero.Level, false);
+            __result = learningRate.ResultNumber;
+            return false;
         }
 
         public static List<TooltipProperty> GetLearningRateTooltip(SkillVM skillVM, CharacterVM developerVM)
@@ -302,9 +301,7 @@ namespace LevellingCustomizer
         {
             var attributeName = skill.CharacterAttribute.Name;
             var learningRate = Campaign.Current.Models.CharacterDevelopmentModel.CalculateLearningRate(attributeValue, focusValue, skillValue, characterLevel, attributeName, includeDescriptions);
-            GetAttrFocusExtraLearningRate(hero, out float attrExtraLearningRate, out float focusExtraLearningRate, attributeValue, focusValue);
-            learningRate.AddFactor(attrExtraLearningRate / learningRate.BaseNumber, new TextObject("{=LC_Attr_Learning_Rate_Factor}(Mod) Attribute", null));
-            learningRate.AddFactor(focusExtraLearningRate / learningRate.BaseNumber, new TextObject("{=LC_Focus_Learning_Rate_Factor}(Mod) Focus", null));
+            AddAttrFocusExtraLearningRate(hero, ref learningRate, attributeValue, focusValue);
             var multiplier = 0f;
             if (learningRate.ResultNumber > 0f)
             {
@@ -315,18 +312,18 @@ namespace LevellingCustomizer
             return learningRate;
         }
 
-        public static void GetAttrFocusExtraLearningRate(Hero hero, out float attrExtraLearningRate, out float focusExtraLearningRate, int attributeValue, int focusValue)
+        public static void AddAttrFocusExtraLearningRate(Hero hero, ref ExplainedNumber learningRate, int attributeValue, int focusValue)
         {
-            attrExtraLearningRate = 0f;
-            focusExtraLearningRate = 0f;
             var applyTo = MySettings.Instance?.AttrFocusApplyTo?.SelectedIndex ?? 0;
             if ((applyTo == 1 && !hero.IsHumanPlayerCharacter) || (applyTo == 2 && !hero.IsHumanPlayerCharacter && !hero.IsPlayerCompanion))
             {
                 return;
             }
 
-            attrExtraLearningRate = (MySettings.Instance?.AttrExtraLearningRate ?? 0f) * attributeValue;
-            focusExtraLearningRate = (MySettings.Instance?.FocusExtraLearningRate ?? 0f) * focusValue;
+            var attrExtraLearningRate = (MySettings.Instance?.AttrExtraLearningRate ?? 0f) * attributeValue;
+            var focusExtraLearningRate = (MySettings.Instance?.FocusExtraLearningRate ?? 0f) * focusValue;
+            learningRate.AddFactor(attrExtraLearningRate / learningRate.BaseNumber, new TextObject("{=LC_Attr_Learning_Rate_Factor}(Mod) Attribute", null));
+            learningRate.AddFactor(focusExtraLearningRate / learningRate.BaseNumber, new TextObject("{=LC_Focus_Learning_Rate_Factor}(Mod) Focus", null));
         }
 
         public static float CalculateSkillXpMultiplier(Hero hero, SkillObject skill, int skillValue)
