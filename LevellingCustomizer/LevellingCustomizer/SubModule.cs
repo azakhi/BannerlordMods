@@ -15,7 +15,7 @@ using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.ViewModelCollection;
 using TaleWorlds.CampaignSystem.ViewModelCollection.CharacterDeveloper;
 using TaleWorlds.Core;
-using TaleWorlds.Core.ViewModelCollection.Information;
+using TaleWorlds.Core.ViewModelCollection;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 using TaleWorlds.MountAndBlade;
