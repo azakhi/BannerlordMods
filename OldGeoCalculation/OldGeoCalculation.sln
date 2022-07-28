@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OldGeoCalculation", "OldGeoCalculation\OldGeoCalculation.csproj", "{DCD5B872-52CD-4012-891D-1A7746DF9C19}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DCD5B872-52CD-4012-891D-1A7746DF9C19}.Debug|x64.ActiveCfg = Debug|x64
+		{DCD5B872-52CD-4012-891D-1A7746DF9C19}.Debug|x64.Build.0 = Debug|x64
+		{DCD5B872-52CD-4012-891D-1A7746DF9C19}.Release|x64.ActiveCfg = Release|x64
+		{DCD5B872-52CD-4012-891D-1A7746DF9C19}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4CD0A596-FB55-4808-8C16-BE81577E553B}
+	EndGlobalSection
+EndGlobal
