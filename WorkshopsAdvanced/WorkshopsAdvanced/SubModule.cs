@@ -724,29 +724,29 @@ namespace WorkshopsAdvanced
         #region Warehouse
         [SettingProperty(StrWarehouseMinRent, 0, 1000, RequireRestart = false, HintText = StrWarehouseMinRentDesc, Order = 1)]
         [SettingPropertyGroup(StrWarehouseGroupName, GroupOrder = 2)]
-        public int WarehouseMinRent { get; set; } = 10;
+        public int WarehouseMinRent { get; set; } = 5;
 
         [SettingProperty(StrWarehouseMaxRent, 0, 1000, RequireRestart = false, HintText = StrWarehouseMaxRentDesc, Order = 2)]
         [SettingPropertyGroup(StrWarehouseGroupName, GroupOrder = 2)]
-        public int WarehouseMaxRent { get; set; } = 50;
+        public int WarehouseMaxRent { get; set; } = 30;
 
         [SettingProperty(StrWarehouseWeightThreshold, 0, 100000, RequireRestart = false, HintText = StrWarehouseWeightThresholdDesc, Order = 3)]
         [SettingPropertyGroup(StrWarehouseGroupName, GroupOrder = 2)]
-        public int WarehouseWeightThreshold { get; set; } = 2000;
+        public int WarehouseWeightThreshold { get; set; } = 3000;
         #endregion
 
         #region Workforce
         [SettingProperty(StrWorkforceLowWage, 0f, 10f, RequireRestart = false, Order = 1)]
         [SettingPropertyGroup(StrWorkforceGroupName, GroupOrder = 3)]
-        public float WorkforceLowWage { get; set; } = 0.6f;
+        public float WorkforceLowWage { get; set; } = 0.5f;
 
         [SettingProperty(StrWorkforceLowEfficinecy, 0f, 10f, RequireRestart = false, Order = 2)]
         [SettingPropertyGroup(StrWorkforceGroupName, GroupOrder = 3)]
-        public float WorkforceLowEfficinecy { get; set; } = 0.75f;
+        public float WorkforceLowEfficinecy { get; set; } = 0.5f;
 
         [SettingProperty(StrWorkforceHighWage, 0f, 10f, RequireRestart = false, Order = 3)]
         [SettingPropertyGroup(StrWorkforceGroupName, GroupOrder = 3)]
-        public float WorkforceHighWage { get; set; } = 2f;
+        public float WorkforceHighWage { get; set; } = 3f;
 
         [SettingProperty(StrWorkforceHighEfficinecy, 0f, 10f, RequireRestart = false, Order = 4)]
         [SettingPropertyGroup(StrWorkforceGroupName, GroupOrder = 3)]
@@ -754,7 +754,7 @@ namespace WorkshopsAdvanced
 
         [SettingProperty(StrWorkforceMaxWage, 0f, 10f, RequireRestart = false, Order = 5)]
         [SettingPropertyGroup(StrWorkforceGroupName, GroupOrder = 3)]
-        public float WorkforceMaxWage { get; set; } = 3f;
+        public float WorkforceMaxWage { get; set; } = 5f;
 
         [SettingProperty(StrWorkforceMaxEfficinecy, 0f, 10f, RequireRestart = false, Order = 6)]
         [SettingPropertyGroup(StrWorkforceGroupName, GroupOrder = 3)]
@@ -764,7 +764,7 @@ namespace WorkshopsAdvanced
         #region Caravans
         [SettingProperty(StrCaravanBudget, 0, 10000, RequireRestart = false, HintText = StrCaravanBudgetDesc, Order = 1)]
         [SettingPropertyGroup(StrCaravanGroupName, GroupOrder = 4)]
-        public int CaravanBudget { get; set; } = 1500;
+        public int CaravanBudget { get; set; } = 1000;
 
         [SettingProperty(StrCaravanPrice, 0, 100, RequireRestart = false, HintText = StrCaravanPriceDesc, Order = 2)]
         [SettingPropertyGroup(StrCaravanGroupName, GroupOrder = 4)]
@@ -798,7 +798,7 @@ namespace WorkshopsAdvanced
 
         [SettingProperty(StrSmartMaxOutput, 0, 30000, RequireRestart = false, HintText = StrSmartMaxOutputDesc, Order = 7)]
         [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartMaxOutput { get; set; } = 3000;
+        public int SmartMaxOutput { get; set; } = 1000;
 
         [SettingProperty(StrSmartMinSell, 0, 200, RequireRestart = false, HintText = StrSmartMinSellDesc, Order = 8)]
         [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
@@ -970,7 +970,12 @@ namespace WorkshopsAdvanced
         private void AddManageWorkshopsMenuOptions(Settlement settlement)
         {
             var settlementCustomizationData = GetSettlementCustomizationData(settlement);
-            var manageWorkshopsGameMenu = Campaign.Current.SandBoxManager.GameStarter.GetPresumedGameMenu(ManageWorkshopsId);
+            var manageWorkshopsGameMenu = GetGameMenuWithId(Campaign.Current.GameMenuManager, ManageWorkshopsId);
+
+            if (manageWorkshopsGameMenu == null)
+            {
+                throw new Exception("manageWorkshopsGameMenu is null");
+            }
 
             Campaign.Current.GameMenuManager.RemoveRelatedGameMenuOptions(ManageWorkshopsRentWarehouseId);
             AddGameMenuOptionWithRelatedObject(manageWorkshopsGameMenu, ManageWorkshopsRentWarehouseId, settlementCustomizationData.IsRentingWarehouse ? ManageWorkshopsStopRenting : ManageWorkshopsRentWarehouse,
@@ -1073,7 +1078,13 @@ namespace WorkshopsAdvanced
         {
             var workshopCustomizationData = GetWorkshopCustomizationData(workshop);
             var settlementCustomizationData = GetSettlementCustomizationData(workshop.Settlement);
-            var workshopGameMenu = Campaign.Current.SandBoxManager.GameStarter.GetPresumedGameMenu(workshopMenuId);
+            var workshopGameMenu = GetGameMenuWithId(Campaign.Current.GameMenuManager, workshopMenuId);
+
+            if (workshopGameMenu == null)
+            {
+                throw new Exception("workshopGameMenu is null");
+            }
+
             AddAdjustWorkforceMenu(workshopGameMenu, workshop);
 
             Campaign.Current.GameMenuManager.RemoveRelatedGameMenuOptions(ManageTownWorkshopProductionId);
@@ -1286,6 +1297,13 @@ namespace WorkshopsAdvanced
             typeof(GameMenu).GetMethod("AddOption", BindingFlags.NonPublic | BindingFlags.Instance, null,
                 new Type[] { typeof(string), typeof(TextObject), typeof(GameMenuOption.OnConditionDelegate), typeof(GameMenuOption.OnConsequenceDelegate), typeof(int), typeof(bool), typeof(bool), typeof(object) }, null)
                 .Invoke(gameMenu, new object[] { optionId, optionText, condition, consequence, index, isLeave, isRepeatable, relatedObject });
+        }
+
+        // 1.7.2 fix
+        public static GameMenu? GetGameMenuWithId(GameMenuManager manager, string menuId)
+        {
+            var result = typeof(GameMenuManager).GetMethod("GetGameMenu", BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[] { typeof(string) }, null).Invoke(manager, new object[] { menuId });
+            return result as GameMenu;
         }
     }
 
