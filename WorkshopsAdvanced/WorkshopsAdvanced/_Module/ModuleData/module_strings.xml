@@ -1,29 +1,33 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<strings>
-  <string id="WA_Mod_Title" text="{=AA178D5CAE}Workshops Advanced" />
-  <string id="WA_Warehouse_Rent_Tooltip" text="{=D784230846}Warehouse Rent ({RENTEDCOUNT})" />
-  <string id="WA_Menu_Go_Back" text="{=4F2F5E1D6E}Go Back" />
-  <string id="WA_Manage_Workshops_Desc" text="{=FCC955FAD7}Manage owned workshops." />
-  <string id="WA_Manage_Workshops" text="{=40ED6B1E47}Manage Workshops" />
-  <string id="WA_Manage_Workshops_Rent_Warehouse" text="{=F0B8D00A3A}Rent Warehouse" />
-  <string id="WA_Manage_Workshops_Stop_Renting" text="{=E77E70DE13}Stop Renting Warehouse" />
-  <string id="WA_Manage_Workshops_Show_Warehouse" text="{=0E141AD816}Show Warehouse" />
-  <string id="WA_Manage_Workshops_Not_Renting" text="{=2896725ECC}Not Renting Warehouse" />
-  <string id="WA_Manage_Town_Workshop_Desc" text="{=B3DAEC2B1D}Manage workshop behaviour." />
-  <string id="WA_Manage_Town_Workshop_Stop_Working" text="{=69E52EB268}Stop Working" />
-  <string id="WA_Manage_Town_Workshop_Continue_Working" text="{=9DC4118848}Continue Working" />
-  <string id="WA_Manage_Town_Workshop_Do_Not_Buy" text="{=6C0E3AC340}Do Not Buy From Market" />
-  <string id="WA_Manage_Town_Workshop_Buy_From" text="{=0FFA1551F2}Buy From Market" />
-  <string id="WA_Manage_Town_Workshop_Do_Not_Sell" text="{=299BB9B2BF}Do Not Sell To Market" />
-  <string id="WA_Manage_Town_Workshop_Sell_To" text="{=583CFB91C5}Sell To Market" />
-  <string id="WA_Manage_Town_Workshop_Need_Warehouse" text="{=D5D9571BAA}You need to rent a warehouse to change these." />
-  <string id="WA_Adjust_Workforce_Menu_Name" text="{=8092596DE0}Adjust Workforce" />
-  <string id="WA_Adjust_Workforce_Desc" text="{=BE032A38D8}Adjust workforce of your workshop" />
-  <string id="WA_Adjust_Workforce_Low" text="{=DA35F5B05D}Lowered" />
-  <string id="WA_Adjust_Workforce_Normal" text="{=1C490DD392}Normal (Default)" />
-  <string id="WA_Adjust_Workforce_High" text="{=655D20C1CA}High" />
-  <string id="WA_Adjust_Workforce_Max" text="{=6A061313D2}Max" />
-  <string id="WA_Adjust_Selected" text="{=5B4E78BC80}Already selected." />
-  <string id="WA_Inquiry_Stop_Renting" text="{=E77E70DE13}Stop Renting Warehouse" />
-  <string id="WA_Inquiry_Stop_Renting_Desc" text="{=D2E0798F9A}If you stop renting warehouse, every item in it will be sold to town. Are you sure?" />
-</strings>
+<base xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      type="string">
+  <strings>
+    <string id="WA_Mod_Title" text="{=AA178D5CAE}Workshops Advanced" />
+    <string id="WA_Warehouse_Rent_Tooltip" text="{=D784230846}Warehouse Rent ({RENTEDCOUNT})" />
+    <string id="WA_Menu_Go_Back" text="{=4F2F5E1D6E}Go Back" />
+    <string id="WA_Manage_Workshops_Desc" text="{=FCC955FAD7}Manage owned workshops." />
+    <string id="WA_Manage_Workshops" text="{=40ED6B1E47}Manage Workshops" />
+    <string id="WA_Manage_Workshops_Rent_Warehouse" text="{=F0B8D00A3A}Rent Warehouse" />
+    <string id="WA_Manage_Workshops_Stop_Renting" text="{=E77E70DE13}Stop Renting Warehouse" />
+    <string id="WA_Manage_Workshops_Show_Warehouse" text="{=0E141AD816}Show Warehouse" />
+    <string id="WA_Manage_Workshops_Not_Renting" text="{=2896725ECC}Not Renting Warehouse" />
+    <string id="WA_Manage_Town_Workshop_Desc" text="{=B3DAEC2B1D}Manage workshop behaviour." />
+    <string id="WA_Manage_Town_Workshop_Stop_Working" text="{=69E52EB268}Stop Working" />
+    <string id="WA_Manage_Town_Workshop_Continue_Working" text="{=9DC4118848}Continue Working" />
+    <string id="WA_Manage_Town_Workshop_Do_Not_Buy" text="{=6C0E3AC340}Do Not Buy From Market" />
+    <string id="WA_Manage_Town_Workshop_Buy_From" text="{=0FFA1551F2}Buy From Market" />
+    <string id="WA_Manage_Town_Workshop_Do_Not_Sell" text="{=299BB9B2BF}Do Not Sell To Market" />
+    <string id="WA_Manage_Town_Workshop_Sell_To" text="{=583CFB91C5}Sell To Market" />
+    <string id="WA_Manage_Town_Workshop_Need_Warehouse" text="{=D5D9571BAA}You need to rent a warehouse to change these." />
+    <string id="WA_Adjust_Workforce_Menu_Name" text="{=8092596DE0}Adjust Workforce" />
+    <string id="WA_Adjust_Workforce_Desc" text="{=BE032A38D8}Adjust workforce of your workshop" />
+    <string id="WA_Adjust_Workforce_Low" text="{=DA35F5B05D}Lowered" />
+    <string id="WA_Adjust_Workforce_Normal" text="{=1C490DD392}Normal (Default)" />
+    <string id="WA_Adjust_Workforce_High" text="{=655D20C1CA}High" />
+    <string id="WA_Adjust_Workforce_Max" text="{=6A061313D2}Max" />
+    <string id="WA_Adjust_Selected" text="{=5B4E78BC80}Already selected." />
+    <string id="WA_Inquiry_Stop_Renting" text="{=E77E70DE13}Stop Renting Warehouse" />
+    <string id="WA_Inquiry_Stop_Renting_Desc" text="{=D2E0798F9A}If you stop renting warehouse, every item in it will be sold to town. Are you sure?" />
+  </strings>
+</base>

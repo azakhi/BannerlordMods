@@ -77,6 +77,9 @@ namespace WorkshopsAdvanced
         {
             if (game.GameType is Campaign)
             {
+                // 1.7.2 fix
+                game.GameTextManager.LoadGameTexts(TaleWorlds.ModuleManager.ModuleHelper.GetModuleFullPath("WorkshopsAdvanced") + "ModuleData/module_strings.xml");
+
                 var campaignBehaviour = new WorkshopsAdvancedCampaignBehaviour();
                 ((CampaignGameStarter)gameStarterObject).AddBehavior(campaignBehaviour);
             }
