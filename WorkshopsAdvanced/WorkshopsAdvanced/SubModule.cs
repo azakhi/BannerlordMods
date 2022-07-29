@@ -875,13 +875,11 @@ namespace WorkshopsAdvanced
 
         #region Menu Strings
         private readonly TextObject MenuGoBack = GameTexts.FindText("WA_Menu_Go_Back");
-        private readonly TextObject ManageWorkshopsDesc = GameTexts.FindText("WA_Manage_Workshops_Desc");
         private readonly TextObject ManageWorkshopsMenuName = GameTexts.FindText("WA_Manage_Workshops");
         private readonly TextObject ManageWorkshopsRentWarehouse = GameTexts.FindText("WA_Manage_Workshops_Rent_Warehouse");
         private readonly TextObject ManageWorkshopsStopRenting = GameTexts.FindText("WA_Manage_Workshops_Stop_Renting");
         private readonly TextObject ManageWorkshopsShowWarehouse = GameTexts.FindText("WA_Manage_Workshops_Show_Warehouse");
         private readonly TextObject ManageWorkshopsNotRenting = GameTexts.FindText("WA_Manage_Workshops_Not_Renting");
-        private readonly TextObject ManageTownWorkshopDesc = GameTexts.FindText("WA_Manage_Town_Workshop_Desc");
         private readonly TextObject ManageTownWorkshopStopWorking = GameTexts.FindText("WA_Manage_Town_Workshop_Stop_Working");
         private readonly TextObject ManageTownWorkshopContinueWorking = GameTexts.FindText("WA_Manage_Town_Workshop_Continue_Working");
         private readonly TextObject ManageTownWorkshopDoNotBuy = GameTexts.FindText("WA_Manage_Town_Workshop_Do_Not_Buy");
@@ -890,14 +888,17 @@ namespace WorkshopsAdvanced
         private readonly TextObject ManageTownWorkshopSellTo = GameTexts.FindText("WA_Manage_Town_Workshop_Sell_To");
         private readonly TextObject ManageTownWorkshopNeedWarehouse = GameTexts.FindText("WA_Manage_Town_Workshop_Need_Warehouse");
         private readonly TextObject AdjustWorkforceMenuName = GameTexts.FindText("WA_Adjust_Workforce_Menu_Name");
-        private readonly TextObject AdjustWorkforceDesc = GameTexts.FindText("WA_Adjust_Workforce_Desc");
-        private readonly TextObject AdjustWorkforceLow = GameTexts.FindText("WA_Adjust_Workforce_Low");
-        private readonly TextObject AdjustWorkforceNormal = GameTexts.FindText("WA_Adjust_Workforce_Normal");
-        private readonly TextObject AdjustWorkforceHigh = GameTexts.FindText("WA_Adjust_Workforce_High");
-        private readonly TextObject AdjustWorkforceMax = GameTexts.FindText("WA_Adjust_Workforce_Max");
         private readonly TextObject AdjustWorkforceSelected = GameTexts.FindText("WA_Adjust_Selected");
         private readonly TextObject InquiryStopRentingTitle = GameTexts.FindText("WA_Inquiry_Stop_Renting");
         private readonly TextObject InquiryStopRentingDesc = GameTexts.FindText("WA_Inquiry_Stop_Renting_Desc");
+        private const string ManageWorkshopsDesc = "{=FCC955FAD7}Manage owned workshops.";
+        private const string ManageTownWorkshopDesc = "{=B3DAEC2B1D}Manage workshop behaviour.";
+        private const string AdjustWorkforceDesc = "{=BE032A38D8}Adjust workforce of your workshop";
+        private const string AdjustWorkforceLow = "{=DA35F5B05D}Lowered";
+        private const string AdjustWorkforceNormal = "{=1C490DD392}Normal (Default)";
+        private const string AdjustWorkforceHigh = "{=655D20C1CA}High";
+        private const string AdjustWorkforceMax = "{=6A061313D2}Max";
+        private const string MenuGoBackStr = "{=4F2F5E1D6E}Go Back";
 
         private const string ManageWorkshopsId = "manage_workshops";
         private const string ManageWorkshopsRentWarehouseId = "manage_workshops_rent_warehouse";
@@ -948,23 +949,25 @@ namespace WorkshopsAdvanced
 
         protected void AddWorkshopMenus(CampaignGameStarter campaignGameStarter)
         {
-            campaignGameStarter.AddGameMenu(ManageWorkshopsId, ManageWorkshopsDesc.ToString(),
+            campaignGameStarter.AddGameMenu(ManageWorkshopsId, ManageWorkshopsDesc,
                 new OnInitDelegate((callbackArgs) =>
                 {
                     AddManageWorkshopsMenuOptions(Settlement.CurrentSettlement);
                     callbackArgs.optionLeaveType = GameMenuOption.LeaveType.Leave;
                 }), GameOverlays.MenuOverlayType.SettlementWithBoth);
 
-            campaignGameStarter.AddGameMenuOption("town", ManageWorkshopsId, ManageWorkshopsMenuName.ToString(),
+            var townMenu = Campaign.Current.SandBoxManager.GameStarter.GetPresumedGameMenu("town");
+            AddGameMenuOptionWithRelatedObject(townMenu, ManageWorkshopsId, ManageWorkshopsMenuName,
                 new GameMenuOption.OnConditionDelegate((callbackArgs) =>
                 {
                     callbackArgs.optionLeaveType = GameMenuOption.LeaveType.Submenu;
                     callbackArgs.IsEnabled = true;
                     return true;
-                }), new GameMenuOption.OnConsequenceDelegate((callbackArgs) =>
+                }),
+                new GameMenuOption.OnConsequenceDelegate((callbackArgs) =>
                 {
                     GameMenu.SwitchToMenu(ManageWorkshopsId);
-                }), false, 5, false);
+                }), 5, false, false, null);
         }
 
         private void AddManageWorkshopsMenuOptions(Settlement settlement)
@@ -1033,7 +1036,7 @@ namespace WorkshopsAdvanced
 
                 var workshop = workshops[i];
                 var workshopMenuId = ManageTownWorkshopIdPrefix + i;
-                Campaign.Current.SandBoxManager.GameStarter.AddGameMenu(workshopMenuId, ManageTownWorkshopDesc.ToString(),
+                Campaign.Current.SandBoxManager.GameStarter.AddGameMenu(workshopMenuId, ManageTownWorkshopDesc,
                     new OnInitDelegate((callbackArgs) =>
                     {
                         callbackArgs.IsEnabled = true;
@@ -1147,7 +1150,7 @@ namespace WorkshopsAdvanced
         private void AddAdjustWorkforceMenu(GameMenu workshopGameMenu, Workshop workshop)
         {
             Campaign.Current.GameMenuManager.RemoveRelatedGameMenus(AdjustWorkforceId);
-            Campaign.Current.SandBoxManager.GameStarter.AddGameMenu(AdjustWorkforceId, AdjustWorkforceDesc.ToString(),
+            Campaign.Current.SandBoxManager.GameStarter.AddGameMenu(AdjustWorkforceId, AdjustWorkforceDesc,
                 new OnInitDelegate((callbackArgs) =>
                 {
                     callbackArgs.IsEnabled = true;
@@ -1169,7 +1172,7 @@ namespace WorkshopsAdvanced
                 }), -1, false, false, AdjustWorkforceId);
 
             var workshopCustomizationData = GetWorkshopCustomizationData(workshop);
-            Campaign.Current.SandBoxManager.GameStarter.AddGameMenuOption(AdjustWorkforceId, AdjustWorkforceLowId, AdjustWorkforceLow.ToString(),
+            Campaign.Current.SandBoxManager.GameStarter.AddGameMenuOption(AdjustWorkforceId, AdjustWorkforceLowId, AdjustWorkforceLow,
                 new GameMenuOption.OnConditionDelegate((callbackArgs) =>
                 {
                     var isSelected = workshopCustomizationData.WorkforceLevel < 0;
@@ -1188,7 +1191,7 @@ namespace WorkshopsAdvanced
                     callbackArgs.MenuContext.Refresh();
                 }));
 
-            Campaign.Current.SandBoxManager.GameStarter.AddGameMenuOption(AdjustWorkforceId, AdjustWorkforceNormalId, AdjustWorkforceNormal.ToString(),
+            Campaign.Current.SandBoxManager.GameStarter.AddGameMenuOption(AdjustWorkforceId, AdjustWorkforceNormalId, AdjustWorkforceNormal,
                 new GameMenuOption.OnConditionDelegate((callbackArgs) =>
                 {
                     var isSelected = workshopCustomizationData.WorkforceLevel == 0;
@@ -1207,7 +1210,7 @@ namespace WorkshopsAdvanced
                     callbackArgs.MenuContext.Refresh();
                 }));
 
-            Campaign.Current.SandBoxManager.GameStarter.AddGameMenuOption(AdjustWorkforceId, AdjustWorkforceHighId, AdjustWorkforceHigh.ToString(),
+            Campaign.Current.SandBoxManager.GameStarter.AddGameMenuOption(AdjustWorkforceId, AdjustWorkforceHighId, AdjustWorkforceHigh,
                 new GameMenuOption.OnConditionDelegate((callbackArgs) =>
                 {
                     var isSelected = workshopCustomizationData.WorkforceLevel == 1;
@@ -1226,7 +1229,7 @@ namespace WorkshopsAdvanced
                     callbackArgs.MenuContext.Refresh();
                 }));
 
-            Campaign.Current.SandBoxManager.GameStarter.AddGameMenuOption(AdjustWorkforceId, AdjustWorkforceMaxId, AdjustWorkforceMax.ToString(),
+            Campaign.Current.SandBoxManager.GameStarter.AddGameMenuOption(AdjustWorkforceId, AdjustWorkforceMaxId, AdjustWorkforceMax,
                 new GameMenuOption.OnConditionDelegate((callbackArgs) =>
                 {
                     var isSelected = workshopCustomizationData.WorkforceLevel > 1;
@@ -1245,7 +1248,7 @@ namespace WorkshopsAdvanced
                     callbackArgs.MenuContext.Refresh();
                 }));
 
-            Campaign.Current.SandBoxManager.GameStarter.AddGameMenuOption(AdjustWorkforceId, AdjustWorkforceGoBackId, MenuGoBack.ToString(),
+            Campaign.Current.SandBoxManager.GameStarter.AddGameMenuOption(AdjustWorkforceId, AdjustWorkforceGoBackId, MenuGoBackStr,
                 new GameMenuOption.OnConditionDelegate((callbackArgs) =>
                 {
                     callbackArgs.optionLeaveType = GameMenuOption.LeaveType.Leave;
