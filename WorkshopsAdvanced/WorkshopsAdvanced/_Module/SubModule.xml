@@ -44,4 +44,9 @@
       <Tags />
     </SubModule>
   </SubModules>
+  <Xmls>
+    <XmlNode>
+      <XmlName id="GameText" path="module_strings"/>
+    </XmlNode>
+  </Xmls>
 </Module>

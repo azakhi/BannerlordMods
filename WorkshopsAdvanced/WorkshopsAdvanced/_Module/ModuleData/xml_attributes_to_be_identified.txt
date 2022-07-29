@@ -1,0 +1,1 @@
+WorkshopsAdvanced/ModuleData/module_strings.xml: base.strings.string.text
