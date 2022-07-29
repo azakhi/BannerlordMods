@@ -113,7 +113,7 @@ namespace WorkshopsAdvanced
             if (clan == Clan.PlayerClan)
             {
                 Helper.GetWarehouseRent(out var rentedCount, out var totalRent);
-                goldChange.Add(-totalRent, new TextObject("{=WA_Warehouse_Rent_Tooltip}Warehouse Rent ({RENTEDCOUNT})", new Dictionary<string, object>() { { "RENTEDCOUNT", rentedCount } }));
+                goldChange.Add(-totalRent, GameTexts.FindText("WA_Warehouse_Rent_Tooltip").SetTextVariable("RENTEDCOUNT", rentedCount));
             }
         }
 
@@ -652,59 +652,59 @@ namespace WorkshopsAdvanced
     public class MySettings : AttributeGlobalSettings<MySettings>
     {
         public override string Id => "WorkshopsAdvancedSettings";
-        public override string DisplayName => new TextObject("{=WA_Mod_Title}Workshops Advanced").ToString();
+        public override string DisplayName => new TextObject("{=AA178D5CAE}Workshops Advanced").ToString();
         public override string FolderName => "WorkshopsAdvanced";
         public override string FormatType => "json";
 
         #region String Definitions
-        private const string StrGlobalGroupName = "{=WA_Settings_Global}Global Customizations";
-        private const string StrExtraStartingCount = "{=WA_Settings_Extra_Starting_Count}Extra Starting Workshop Count";
-        private const string StrExtraStartingCountDesc = "{=WA_Settings_Extra_Starting_Count_Desc}Additional workshop count at the start of the game. Added to the base value.";
-        private const string StrExtraCountPerTier = "{=WA_Settings_Extra_Count_Per_Tier}Extra Workshop Count Per Tier";
-        private const string StrExtraCountPerTierDesc = "{=WA_Settings_Extra_Count_Per_Tier_Desc}Additional workshop count per clan tier. Added to the base value.";
-        private const string StrProductionMultiplier = "{=WA_Settings_Production_Mult}Production Multiplier";
-        private const string StrProductionMultiplierDesc = "{=WA_Settings_Production_Mult_Desc}Production speed multiplier for workshops. Use this if you want to adjust profitability.";
+        private const string StrGlobalGroupName = "{=3603CC01E5}Global Customizations";
+        private const string StrExtraStartingCount = "{=AFB8C07111}Extra Starting Workshop Count";
+        private const string StrExtraStartingCountDesc = "{=330973B628}Additional workshop count at the start of the game. Added to the base value.";
+        private const string StrExtraCountPerTier = "{=AA8CC40514}Extra Workshop Count Per Tier";
+        private const string StrExtraCountPerTierDesc = "{=D36A864461}Additional workshop count per clan tier. Added to the base value.";
+        private const string StrProductionMultiplier = "{=EC07A2D5C2}Production Multiplier";
+        private const string StrProductionMultiplierDesc = "{=AE6E81AE28}Production speed multiplier for workshops. Use this if you want to adjust profitability.";
 
-        private const string StrWarehouseGroupName = "{=WA_Settings_Group_Warehouse}Warehouse";
-        private const string StrWarehouseMinRent = "{=WA_Settings_Warehouse_Min_Rent}Minimum Warehouse Rent";
-        private const string StrWarehouseMinRentDesc = "{=WA_Settings_Warehouse_Min_Rent_Desc}Minimum rent to be paid if the rented warehouse is empty.";
-        private const string StrWarehouseMaxRent = "{=WA_Settings_Warehouse_Max_Rent}Maximum Warehouse Rent";
-        private const string StrWarehouseMaxRentDesc = "{=WA_Settings_Warehouse_Max_Rent_Desc}Maximum rent to be paid if the rented warehouse is above the weight threshold.";
-        private const string StrWarehouseWeightThreshold = "{=WA_Settings_Warehouse_Weight_Threshold}Weight Threshold For Max Rent";
-        private const string StrWarehouseWeightThresholdDesc = "{=WA_Settings_Warehouse_Weight_Threshold_Desc}You will pay maximum rent if total weight is above this.";
+        private const string StrWarehouseGroupName = "{=6416E8CB5F}Warehouse";
+        private const string StrWarehouseMinRent = "{=992858B61F}Minimum Warehouse Rent";
+        private const string StrWarehouseMinRentDesc = "{=0109B196BF}Minimum rent to be paid if the rented warehouse is empty.";
+        private const string StrWarehouseMaxRent = "{=26FCC570D2}Maximum Warehouse Rent";
+        private const string StrWarehouseMaxRentDesc = "{=7E16171552}Maximum rent to be paid if the rented warehouse is above the weight threshold.";
+        private const string StrWarehouseWeightThreshold = "{=8F958065C4}Weight Threshold For Max Rent";
+        private const string StrWarehouseWeightThresholdDesc = "{=C283F85181}You will pay maximum rent if total weight is above this.";
 
-        private const string StrWorkforceGroupName = "{=WA_Settings_Group_Workforce}Workshop Workforce";
-        private const string StrWorkforceLowWage = "{=WA_Settings_Workforce_Low_Wage}Lowered Wage Multiplier";
-        private const string StrWorkforceLowEfficinecy = "{=WA_Settings_Workforce_Low_Efficiency}Lowered Efficiency";
-        private const string StrWorkforceHighWage = "{=WA_Settings_Workforce_High_Wage}High Wage Multiplier";
-        private const string StrWorkforceHighEfficinecy = "{=WA_Settings_Workforce_High_Efficiency}High Efficiency";
-        private const string StrWorkforceMaxWage = "{=WA_Settings_Workforce_Max_Wage}Max Wage Multiplier";
-        private const string StrWorkforceMaxEfficinecy = "{=WA_Settings_Workforce_Max_Efficiency}Max Efficiency";
+        private const string StrWorkforceGroupName = "{=D3C0E12F08}Workshop Workforce";
+        private const string StrWorkforceLowWage = "{=EF210D8D5E}Lowered Wage Multiplier";
+        private const string StrWorkforceLowEfficinecy = "{=0E9719477C}Lowered Efficiency";
+        private const string StrWorkforceHighWage = "{=274FD83FBF}High Wage Multiplier";
+        private const string StrWorkforceHighEfficinecy = "{=801F547A51}High Efficiency";
+        private const string StrWorkforceMaxWage = "{=0CDCA05A51}Max Wage Multiplier";
+        private const string StrWorkforceMaxEfficinecy = "{=3F90F0A421}Max Efficiency";
 
-        private const string StrCaravanGroupName = "{=WA_Settings_Group_Caravan}Your Caravans";
-        private const string StrCaravanBudget = "{=WA_Settings_Caravan_Budget}Max Caravan Budget For Workshops";
-        private const string StrCaravanBudgetDesc = "{=WA_Settings_Caravan_Budget_Desc}Maximum caravan budget to be spent on buying workshop outputs when they enter the settlement.";
-        private const string StrCaravanPrice = "{=WA_Settings_Caravan_Price}Price Percentage";
-        private const string StrCaravanPriceDesc = "{=WA_Settings_Caravan_Price_Desc}Percentage of price your caravans will need to pay to your workshops.";
+        private const string StrCaravanGroupName = "{=FE3195AA9E}Your Caravans";
+        private const string StrCaravanBudget = "{=1D792BC143}Max Caravan Budget For Workshops";
+        private const string StrCaravanBudgetDesc = "{=396F65EBFA}Maximum caravan budget to be spent on buying workshop outputs when they enter the settlement.";
+        private const string StrCaravanPrice = "{=B9A8A86817}Price Percentage";
+        private const string StrCaravanPriceDesc = "{=5D2C722382}Percentage of price your caravans will need to pay to your workshops.";
 
-        private const string StrSmartGroupName = "{=WA_Settings_Group_Smart}Smarter Workshops";
-        private const string StrSmartEnable = "{=WA_Settings_Smart_Enable}Enable";
-        private const string StrSmartExtraBuy = "{=WA_Settings_Smart_Extra_Buy}Extra Buy Count";
-        private const string StrSmartExtraBuyDesc = "{=WA_Settings_Smart_Extra_Buy_Desc}Additional amount to be bought from market when input stock is under threshold. Requires warehouse.";
-        private const string StrSmartStock = "{=WA_Settings_Smart_Stock}Input Stock";
-        private const string StrSmartStockDesc = "{=WA_Settings_Smart_Stock_Desc}Input stock threshold to determine when to buy extra from market.";
-        private const string StrSmartExtraSell = "{=WA_Settings_Smart_Extra_Sell}Extra Amount To Be Sold";
-        private const string StrSmartExtraSellDesc = "{=WA_Settings_Smart_Extra_Sell_Desc}Additional amount to be sold from warehouse when price is determined to be good. Requires warehouse.";
-        private const string StrSmartSellOnChange = "{=WA_Settings_Smart_Sell_On_Change}Amount To Be Sold On Market Change";
-        private const string StrSmartSellOnChangeDesc = "{=WA_Settings_Smart_Sell_On_Change_Desc}Amount to be sold when market change is detected and price is determined to be good. Requires warehouse.";
-        private const string StrSmartMinOutput = "{=WA_Settings_Smart_Min_Output}Minimum Output Stock Value";
-        private const string StrSmartMinOutputDesc = "{=WA_Settings_Smart_Min_Output_Desc}Target minimum output stock value where selling price percentage starts dropping.";
-        private const string StrSmartMaxOutput = "{=WA_Settings_Smart_Max_Output}Maximum Output Stock Value";
-        private const string StrSmartMaxOutputDesc = "{=WA_Settings_Smart_Max_Output_Desc}Target maximum output stock value where selling price percentage is the minimum given.";
-        private const string StrSmartMinSell = "{=WA_Settings_Smart_Min_Sell}Min Required Price Percentage";
-        private const string StrSmartMinSellDesc = "{=WA_Settings_Smart_Min_Sell_Desc}Output items will not be sold at any price percentage under this regardless of stock.";
-        private const string StrSmartMaxSell = "{=WA_Settings_Smart_Max_Sell}Max Required Price Percentage";
-        private const string StrSmartMaxSellDesc = "{=WA_Settings_Smart_Max_Sell_Desc}Output items will be sold at any price percentage above this regardless of stock.";
+        private const string StrSmartGroupName = "{=3C2AF9B6A4}Smarter Workshops";
+        private const string StrSmartEnable = "{=2FAEC1F9F8}Enable";
+        private const string StrSmartExtraBuy = "{=29E5A9662A}Extra Buy Count";
+        private const string StrSmartExtraBuyDesc = "{=E62420EEF2}Additional amount to be bought from market when input stock is under threshold. Requires warehouse.";
+        private const string StrSmartStock = "{=AC40DFFE06}Input Stock";
+        private const string StrSmartStockDesc = "{=85E74592E6}Input stock threshold to determine when to buy extra from market.";
+        private const string StrSmartExtraSell = "{=47A1730D7A}Extra Amount To Be Sold";
+        private const string StrSmartExtraSellDesc = "{=173731E643}Additional amount to be sold from warehouse when price is determined to be good. Requires warehouse.";
+        private const string StrSmartSellOnChange = "{=6DEB69A97B}Amount To Be Sold On Market Change";
+        private const string StrSmartSellOnChangeDesc = "{=830726AFA0}Amount to be sold when market change is detected and price is determined to be good. Requires warehouse.";
+        private const string StrSmartMinOutput = "{=B2287541DA}Minimum Output Stock Value";
+        private const string StrSmartMinOutputDesc = "{=5FC883241C}Target minimum output stock value where selling price percentage starts dropping.";
+        private const string StrSmartMaxOutput = "{=1FC94A95BC}Maximum Output Stock Value";
+        private const string StrSmartMaxOutputDesc = "{=617C7BD764}Target maximum output stock value where selling price percentage is the minimum given.";
+        private const string StrSmartMinSell = "{=777756BD1A}Min Required Price Percentage";
+        private const string StrSmartMinSellDesc = "{=35643AEAC6}Output items will not be sold at any price percentage under this regardless of stock.";
+        private const string StrSmartMaxSell = "{=8F7FEBFA78}Max Required Price Percentage";
+        private const string StrSmartMaxSellDesc = "{=0B1CED6ABB}Output items will be sold at any price percentage above this regardless of stock.";
         #endregion
 
         #region Global
@@ -874,30 +874,30 @@ namespace WorkshopsAdvanced
         }
 
         #region Menu Strings
-        private readonly TextObject MenuGoBack = new TextObject("{=WA_Menu_Go_Back}Go Back", null);
-        private readonly TextObject ManageWorkshopsDesc = new TextObject("{=WA_Manage_Workshops_Desc}Manage owned workshops.", null);
-        private readonly TextObject ManageWorkshopsMenuName = new TextObject("{=WA_Manage_Workshops}Manage Workshops", null);
-        private readonly TextObject ManageWorkshopsRentWarehouse = new TextObject("{=WA_Manage_Workshops_Rent_Warehouse}Rent Warehouse", null);
-        private readonly TextObject ManageWorkshopsStopRenting = new TextObject("{=WA_Manage_Workshops_Stop_Renting}Stop Renting Warehouse", null);
-        private readonly TextObject ManageWorkshopsShowWarehouse = new TextObject("{=WA_Manage_Workshops_Show_Warehouse}Show Warehouse", null);
-        private readonly TextObject ManageWorkshopsNotRenting = new TextObject("{=WA_Manage_Workshops_Not_Renting}Not Renting Warehouse", null);
-        private readonly TextObject ManageTownWorkshopDesc = new TextObject("{=WA_Manage_Town_Workshop_Desc}Manage workshop behaviour.", null);
-        private readonly TextObject ManageTownWorkshopStopWorking = new TextObject("{=WA_Manage_Town_Workshop_Stop_Working}Stop Working", null);
-        private readonly TextObject ManageTownWorkshopContinueWorking = new TextObject("{=WA_Manage_Town_Workshop_Continue_Working}Continue Working", null);
-        private readonly TextObject ManageTownWorkshopDoNotBuy = new TextObject("{=WA_Manage_Town_Workshop_Do_Not_Buy}Do Not Buy From Market", null);
-        private readonly TextObject ManageTownWorkshopBuyFrom = new TextObject("{=WA_Manage_Town_Workshop_Buy_From}Buy From Market", null);
-        private readonly TextObject ManageTownWorkshopDoNotSell = new TextObject("{=WA_Manage_Town_Workshop_Do_Not_Sell}Do Not Sell To Market", null);
-        private readonly TextObject ManageTownWorkshopSellTo = new TextObject("{=WA_Manage_Town_Workshop_Sell_To}Sell To Market", null);
-        private readonly TextObject ManageTownWorkshopNeedWarehouse = new TextObject("{=WA_Manage_Town_Workshop_Need_Warehouse}You need to rent a warehouse to change these.", null);
-        private readonly TextObject AdjustWorkforceMenuName = new TextObject("{=WA_Adjust_Workforce_Menu_Name}Adjust Workforce", null);
-        private readonly TextObject AdjustWorkforceDesc = new TextObject("{=WA_Adjust_Workforce_Desc}Adjust workforce of your workshop", null);
-        private readonly TextObject AdjustWorkforceLow = new TextObject("{=WA_Adjust_Workforce_Low}Lowered", null);
-        private readonly TextObject AdjustWorkforceNormal = new TextObject("{=WA_Adjust_Workforce_Normal}Normal (Default)", null);
-        private readonly TextObject AdjustWorkforceHigh = new TextObject("{=WA_Adjust_Workforce_High}High", null);
-        private readonly TextObject AdjustWorkforceMax = new TextObject("{=WA_Adjust_Workforce_Max}Max", null);
-        private readonly TextObject AdjustWorkforceSelected = new TextObject("{=WA_Adjust_Selected}Already selected.", null);
-        private readonly TextObject InquiryStopRentingTitle = new TextObject("{=WA_Inquiry_Stop_Renting}Stop Renting Warehouse", null);
-        private readonly TextObject InquiryStopRentingDesc = new TextObject("{=WA_Inquiry_Stop_Renting_Desc}If you stop renting warehouse, every item in it will be sold to town. Are you sure?", null);
+        private readonly TextObject MenuGoBack = GameTexts.FindText("WA_Menu_Go_Back");
+        private readonly TextObject ManageWorkshopsDesc = GameTexts.FindText("WA_Manage_Workshops_Desc");
+        private readonly TextObject ManageWorkshopsMenuName = GameTexts.FindText("WA_Manage_Workshops");
+        private readonly TextObject ManageWorkshopsRentWarehouse = GameTexts.FindText("WA_Manage_Workshops_Rent_Warehouse");
+        private readonly TextObject ManageWorkshopsStopRenting = GameTexts.FindText("WA_Manage_Workshops_Stop_Renting");
+        private readonly TextObject ManageWorkshopsShowWarehouse = GameTexts.FindText("WA_Manage_Workshops_Show_Warehouse");
+        private readonly TextObject ManageWorkshopsNotRenting = GameTexts.FindText("WA_Manage_Workshops_Not_Renting");
+        private readonly TextObject ManageTownWorkshopDesc = GameTexts.FindText("WA_Manage_Town_Workshop_Desc");
+        private readonly TextObject ManageTownWorkshopStopWorking = GameTexts.FindText("WA_Manage_Town_Workshop_Stop_Working");
+        private readonly TextObject ManageTownWorkshopContinueWorking = GameTexts.FindText("WA_Manage_Town_Workshop_Continue_Working");
+        private readonly TextObject ManageTownWorkshopDoNotBuy = GameTexts.FindText("WA_Manage_Town_Workshop_Do_Not_Buy");
+        private readonly TextObject ManageTownWorkshopBuyFrom = GameTexts.FindText("WA_Manage_Town_Workshop_Buy_From");
+        private readonly TextObject ManageTownWorkshopDoNotSell = GameTexts.FindText("WA_Manage_Town_Workshop_Do_Not_Sell");
+        private readonly TextObject ManageTownWorkshopSellTo = GameTexts.FindText("WA_Manage_Town_Workshop_Sell_To");
+        private readonly TextObject ManageTownWorkshopNeedWarehouse = GameTexts.FindText("WA_Manage_Town_Workshop_Need_Warehouse");
+        private readonly TextObject AdjustWorkforceMenuName = GameTexts.FindText("WA_Adjust_Workforce_Menu_Name");
+        private readonly TextObject AdjustWorkforceDesc = GameTexts.FindText("WA_Adjust_Workforce_Desc");
+        private readonly TextObject AdjustWorkforceLow = GameTexts.FindText("WA_Adjust_Workforce_Low");
+        private readonly TextObject AdjustWorkforceNormal = GameTexts.FindText("WA_Adjust_Workforce_Normal");
+        private readonly TextObject AdjustWorkforceHigh = GameTexts.FindText("WA_Adjust_Workforce_High");
+        private readonly TextObject AdjustWorkforceMax = GameTexts.FindText("WA_Adjust_Workforce_Max");
+        private readonly TextObject AdjustWorkforceSelected = GameTexts.FindText("WA_Adjust_Selected");
+        private readonly TextObject InquiryStopRentingTitle = GameTexts.FindText("WA_Inquiry_Stop_Renting");
+        private readonly TextObject InquiryStopRentingDesc = GameTexts.FindText("WA_Inquiry_Stop_Renting_Desc");
 
         private const string ManageWorkshopsId = "manage_workshops";
         private const string ManageWorkshopsRentWarehouseId = "manage_workshops_rent_warehouse";

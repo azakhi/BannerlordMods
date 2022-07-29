@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<base xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" type="string">
+  <strings>
+    <string id="AA178D5CAE" text="Workshops Advanced" />
+    <string id="D784230846" text="Warehouse Rent ({RENTEDCOUNT})" />
+    <string id="4F2F5E1D6E" text="Go Back" />
+    <string id="FCC955FAD7" text="Manage owned workshops." />
+    <string id="40ED6B1E47" text="Manage Workshops" />
+    <string id="F0B8D00A3A" text="Rent Warehouse" />
+    <string id="E77E70DE13" text="Stop Renting Warehouse" />
+    <string id="0E141AD816" text="Show Warehouse" />
+    <string id="2896725ECC" text="Not Renting Warehouse" />
+    <string id="B3DAEC2B1D" text="Manage workshop behaviour." />
+    <string id="69E52EB268" text="Stop Working" />
+    <string id="9DC4118848" text="Continue Working" />
+    <string id="6C0E3AC340" text="Do Not Buy From Market" />
+    <string id="0FFA1551F2" text="Buy From Market" />
+    <string id="299BB9B2BF" text="Do Not Sell To Market" />
+    <string id="583CFB91C5" text="Sell To Market" />
+    <string id="D5D9571BAA" text="You need to rent a warehouse to change these." />
+    <string id="8092596DE0" text="Adjust Workforce" />
+    <string id="BE032A38D8" text="Adjust workforce of your workshop" />
+    <string id="DA35F5B05D" text="Lowered" />
+    <string id="1C490DD392" text="Normal (Default)" />
+    <string id="655D20C1CA" text="High" />
+    <string id="6A061313D2" text="Max" />
+    <string id="5B4E78BC80" text="Already selected." />
+    <string id="D2E0798F9A" text="If you stop renting warehouse, every item in it will be sold to town. Are you sure?" />
+    <string id="3603CC01E5" text="Global Customizations" />
+    <string id="AFB8C07111" text="Extra Starting Workshop Count" />
+    <string id="330973B628" text="Additional workshop count at the start of the game. Added to the base value." />
+    <string id="AA8CC40514" text="Extra Workshop Count Per Tier" />
+    <string id="D36A864461" text="Additional workshop count per clan tier. Added to the base value." />
+    <string id="EC07A2D5C2" text="Production Multiplier" />
+    <string id="AE6E81AE28" text="Production speed multiplier for workshops. Use this if you want to adjust profitability." />
+    <string id="6416E8CB5F" text="Warehouse" />
+    <string id="992858B61F" text="Minimum Warehouse Rent" />
+    <string id="0109B196BF" text="Minimum rent to be paid if the rented warehouse is empty." />
+    <string id="26FCC570D2" text="Maximum Warehouse Rent" />
+    <string id="7E16171552" text="Maximum rent to be paid if the rented warehouse is above the weight threshold." />
+    <string id="8F958065C4" text="Weight Threshold For Max Rent" />
+    <string id="C283F85181" text="You will pay maximum rent if total weight is above this." />
+    <string id="D3C0E12F08" text="Workshop Workforce" />
+    <string id="EF210D8D5E" text="Lowered Wage Multiplier" />
+    <string id="0E9719477C" text="Lowered Efficiency" />
+    <string id="274FD83FBF" text="High Wage Multiplier" />
+    <string id="801F547A51" text="High Efficiency" />
+    <string id="0CDCA05A51" text="Max Wage Multiplier" />
+    <string id="3F90F0A421" text="Max Efficiency" />
+    <string id="FE3195AA9E" text="Your Caravans" />
+    <string id="1D792BC143" text="Max Caravan Budget For Workshops" />
+    <string id="396F65EBFA" text="Maximum caravan budget to be spent on buying workshop outputs when they enter the settlement." />
+    <string id="B9A8A86817" text="Price Percentage" />
+    <string id="5D2C722382" text="Percentage of price your caravans will need to pay to your workshops." />
+    <string id="3C2AF9B6A4" text="Smarter Workshops" />
+    <string id="2FAEC1F9F8" text="Enable" />
+    <string id="29E5A9662A" text="Extra Buy Count" />
+    <string id="E62420EEF2" text="Additional amount to be bought from market when input stock is under threshold. Requires warehouse." />
+    <string id="AC40DFFE06" text="Input Stock" />
+    <string id="85E74592E6" text="Input stock threshold to determine when to buy extra from market." />
+    <string id="47A1730D7A" text="Extra Amount To Be Sold" />
+    <string id="173731E643" text="Additional amount to be sold from warehouse when price is determined to be good. Requires warehouse." />
+    <string id="6DEB69A97B" text="Amount To Be Sold On Market Change" />
+    <string id="830726AFA0" text="Amount to be sold when market change is detected and price is determined to be good. Requires warehouse." />
+    <string id="B2287541DA" text="Minimum Output Stock Value" />
+    <string id="5FC883241C" text="Target minimum output stock value where selling price percentage starts dropping." />
+    <string id="1FC94A95BC" text="Maximum Output Stock Value" />
+    <string id="617C7BD764" text="Target maximum output stock value where selling price percentage is the minimum given." />
+    <string id="777756BD1A" text="Min Required Price Percentage" />
+    <string id="35643AEAC6" text="Output items will not be sold at any price percentage under this regardless of stock." />
+    <string id="8F7FEBFA78" text="Max Required Price Percentage" />
+    <string id="0B1CED6ABB" text="Output items will be sold at any price percentage above this regardless of stock." />
+  </strings>
+</base>
