@@ -959,7 +959,12 @@ namespace WorkshopsAdvanced
                     callbackArgs.optionLeaveType = GameMenuOption.LeaveType.Leave;
                 }), GameOverlays.MenuOverlayType.SettlementWithBoth);
 
-            var townMenu = Campaign.Current.SandBoxManager.GameStarter.GetPresumedGameMenu("town");
+            var townMenu = GetGameMenuWithId(Campaign.Current.GameMenuManager, "town");
+            if (townMenu == null)
+            {
+                throw new Exception("townMenu is null");
+            }
+
             AddGameMenuOptionWithRelatedObject(townMenu, ManageWorkshopsId, ManageWorkshopsMenuName,
                 new GameMenuOption.OnConditionDelegate((callbackArgs) =>
                 {
