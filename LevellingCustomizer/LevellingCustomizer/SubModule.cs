@@ -70,7 +70,7 @@ namespace LevellingCustomizer
 
         [SettingProperty("{=LC_Settings_Name_567E405D89}Apply To", RequireRestart = false, HintText = "{=LC_Settings_Desc_567E405D89}Select which heroes general customizations should apply to.", Order = 1)]
         [SettingPropertyGroup("{=LC_Settings_Group_0DB377921F}General", GroupOrder = 1)]
-        public DropdownDefault<string> GeneralApplyTo { get; set; } = new DropdownDefault<string>(new string[] { "All Heroes", "Player", "Player & Companions" }, selectedIndex: 0);
+        public DropdownDefault<string> GeneralApplyTo { get; set; } = new DropdownDefault<string>(new string[] { "All Heroes", "Player", "Player & Player Clan" }, selectedIndex: 0);
 
         [SettingProperty("{=LC_Settings_Name_1122D38AAE}Levelling XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_1122D38AAE}The multiplier for levelling XP gained.", Order = 2)]
         [SettingPropertyGroup("{=LC_Settings_Group_0DB377921F}General", GroupOrder = 1)]
@@ -94,7 +94,7 @@ namespace LevellingCustomizer
 
         [SettingProperty("{=LC_Settings_Name_567E405D89}Apply To", RequireRestart = false, HintText = "{=LC_Settings_Desc_567E405D89}Select which heroes attribute & focus points customizations should apply to.", Order = 1)]
         [SettingPropertyGroup("{=LC_Settings_Group_BABCC52183}Attributes & Focus Points", GroupOrder = 2)]
-        public DropdownDefault<string> AttrFocusApplyTo { get; set; } = new DropdownDefault<string>(new string[] { "All Heroes", "Player", "Player & Companions" }, selectedIndex: 0);
+        public DropdownDefault<string> AttrFocusApplyTo { get; set; } = new DropdownDefault<string>(new string[] { "All Heroes", "Player", "Player & Player Clan" }, selectedIndex: 0);
 
         [SettingProperty("{=LC_Settings_Name_BAF9A66B74}Extra Learning Rate Per Attribute", -100f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_BAF9A66B74}This is added to base game value.", Order = 2)]
         [SettingPropertyGroup("{=LC_Settings_Group_BABCC52183}Attributes & Focus Points", GroupOrder = 2)]
@@ -130,7 +130,7 @@ namespace LevellingCustomizer
 
         [SettingProperty("{=LC_Settings_Name_567E405D89}Apply To", RequireRestart = false, HintText = "{=LC_Settings_Desc_567E405D89}Select which heroes skill specific customizations should apply to.", Order = 1)]
         [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
-        public DropdownDefault<string> SkillApplyTo { get; set; } = new DropdownDefault<string>(new string[] { "All Heroes", "Player", "Player & Companions" }, selectedIndex: 0);
+        public DropdownDefault<string> SkillApplyTo { get; set; } = new DropdownDefault<string>(new string[] { "All Heroes", "Player", "Player & Player Clan" }, selectedIndex: 0);
 
         [SettingProperty("{=LC_Settings_Name_47CF2A6D2A}One Handed XP Multiplier", 0f, 100f, RequireRestart = false, HintText = "{=LC_Settings_Desc_47CF2A6D2A}The multiplier for all One Handed skill XP gained.", Order = 2)]
         [SettingPropertyGroup("{=LC_Settings_Group_A4D2C2B871}Skill Specific", GroupOrder = 4)]
@@ -238,7 +238,7 @@ namespace LevellingCustomizer
         public static float CalculateLevellingXpMultiplier(Hero hero)
         {
             var applyTo = MySettings.Instance?.GeneralApplyTo?.SelectedIndex ?? 0;
-            if ((applyTo == 1 && !hero.IsHumanPlayerCharacter) || (applyTo == 2 && !hero.IsHumanPlayerCharacter && !hero.IsPlayerCompanion))
+            if ((applyTo == 1 && !hero.IsHumanPlayerCharacter) || (applyTo == 2 && !hero.IsHumanPlayerCharacter && !hero.IsPlayerCompanion && hero.Clan != Clan.PlayerClan))
             {
                 return 1f;
             }
@@ -323,7 +323,7 @@ namespace LevellingCustomizer
         public static void AddAttrFocusExtraLearningRate(Hero hero, ref ExplainedNumber learningRate, int attributeValue, int focusValue)
         {
             var applyTo = MySettings.Instance?.AttrFocusApplyTo?.SelectedIndex ?? 0;
-            if ((applyTo == 1 && !hero.IsHumanPlayerCharacter) || (applyTo == 2 && !hero.IsHumanPlayerCharacter && !hero.IsPlayerCompanion))
+            if ((applyTo == 1 && !hero.IsHumanPlayerCharacter) || (applyTo == 2 && !hero.IsHumanPlayerCharacter && !hero.IsPlayerCompanion && hero.Clan != Clan.PlayerClan))
             {
                 return;
             }
@@ -341,7 +341,7 @@ namespace LevellingCustomizer
         public static float CalculateSkillXpMultiplier(Hero hero, SkillObject skill, int skillValue)
         {
             var applyTo = MySettings.Instance?.SkillApplyTo?.SelectedIndex ?? 0;
-            if ((applyTo == 1 && !hero.IsHumanPlayerCharacter) || (applyTo == 2 && !hero.IsHumanPlayerCharacter && !hero.IsPlayerCompanion))
+            if ((applyTo == 1 && !hero.IsHumanPlayerCharacter) || (applyTo == 2 && !hero.IsHumanPlayerCharacter && !hero.IsPlayerCompanion && hero.Clan != Clan.PlayerClan))
             {
                 return 1f;
             }
