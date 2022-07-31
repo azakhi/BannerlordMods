@@ -175,7 +175,8 @@ namespace WorkshopsAdvanced
                 return true;
             }
 
-            if (!outputItem.IsTradeGood)
+            var ignoreNonTrade = MySettings.Instance?.NonTradeIgnore ?? true;
+            if (ignoreNonTrade && !outputItem.IsTradeGood)
             {
                 return true;
             }
@@ -250,7 +251,13 @@ namespace WorkshopsAdvanced
 
         public static void ApplyPostfix(PartyBase receiverParty, PartyBase payerParty, ItemRosterElement subject, int number, Settlement currentSettlement = null)
         {
-            if (subject.EquipmentElement.Item == null || !subject.EquipmentElement.Item.IsTradeGood || receiverParty == null || !receiverParty.IsSettlement)
+            if (subject.EquipmentElement.Item == null || receiverParty == null || !receiverParty.IsSettlement)
+            {
+                return;
+            }
+
+            var ignoreNonTrade = MySettings.Instance?.NonTradeIgnore ?? true;
+            if (ignoreNonTrade && !subject.EquipmentElement.Item.IsTradeGood)
             {
                 return;
             }
@@ -399,7 +406,7 @@ namespace WorkshopsAdvanced
                 return;
             }
 
-            var itemIndex = GetSellableOutputIndexFromWarehouse(settlement, itemCategory, true, false, out var workshopIndex);
+            var itemIndex = GetSellableOutputIndexFromWarehouse(settlement, itemCategory, false, out var workshopIndex);
             if (itemIndex >= 0)
             {
                 var isPriceGood = IsPriceGood(settlement, customizationData.Warehouse.GetItemAtIndex(itemIndex));
@@ -448,7 +455,7 @@ namespace WorkshopsAdvanced
 
             while (budget > 0)
             {
-                var itemIndex = GetSellableOutputIndexFromWarehouse(settlement, null, true, true, out var workshopIndex);
+                var itemIndex = GetSellableOutputIndexFromWarehouse(settlement, null, true, out var workshopIndex);
                 if (itemIndex < 0)
                 {
                     return;
@@ -475,7 +482,7 @@ namespace WorkshopsAdvanced
             }
         }
 
-        public static int GetSellableOutputIndexFromWarehouse(Settlement settlement, ItemCategory? itemCategory, bool onlyTradeGoods, bool isCaravan, out int workshopIndex)
+        public static int GetSellableOutputIndexFromWarehouse(Settlement settlement, ItemCategory? itemCategory, bool isCaravan, out int workshopIndex)
         {
             workshopIndex = -1;
             var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetSettlementCustomizationData(settlement);
@@ -484,6 +491,7 @@ namespace WorkshopsAdvanced
                 return -1;
             }
 
+            var ignoreNonTrade = MySettings.Instance?.NonTradeIgnore ?? true;
             var warehouse = customizationData.Warehouse;
             var offset = MBRandom.RandomInt(0, settlement.Town.Workshops.Length);
             for (var i = 0; i < settlement.Town.Workshops.Length; i++)
@@ -511,7 +519,7 @@ namespace WorkshopsAdvanced
                             for (var j = 0; j < warehouse.Count; j++)
                             {
                                 var item = warehouse[j].EquipmentElement.Item;
-                                if (item.ItemCategory == output.Item1 && (!onlyTradeGoods || item.IsTradeGood))
+                                if (item.ItemCategory == output.Item1 && (!ignoreNonTrade || item.IsTradeGood))
                                 {
                                     return j;
                                 }
@@ -529,7 +537,8 @@ namespace WorkshopsAdvanced
             if (!item.IsTradeGood)
             {
                 // Non-trade items should never be part of smart selling
-                return false;
+                var ignoreNonTrade = MySettings.Instance?.NonTradeIgnore ?? true;
+                return !ignoreNonTrade;
             }
 
             var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetSettlementCustomizationData(settlement);
@@ -665,6 +674,8 @@ namespace WorkshopsAdvanced
         private const string StrExtraCountPerTierDesc = "{=D36A864461}Additional workshop count per clan tier. Added to the base value.";
         private const string StrProductionMultiplier = "{=EC07A2D5C2}Production Multiplier";
         private const string StrProductionMultiplierDesc = "{=AE6E81AE28}Production speed multiplier for workshops. Use this if you want to adjust profitability.";
+        private const string StrNonTradeIgnore = "{=9456B57ACA}Ignore Non-trade Goods";
+        private const string StrNonTradeIgnoreDesc = "{=E0C53CB714}Ignores non-trade when not selling to market. Recommended for a balanced game.";
 
         private const string StrWarehouseGroupName = "{=6416E8CB5F}Warehouse";
         private const string StrWarehouseMinRent = "{=992858B61F}Minimum Warehouse Rent";
@@ -720,6 +731,10 @@ namespace WorkshopsAdvanced
         [SettingProperty(StrProductionMultiplier, 0f, 10f, RequireRestart = false, HintText = StrProductionMultiplierDesc, Order = 3)]
         [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
         public float ProductionMultiplier { get; set; } = 1f;
+
+        [SettingProperty(StrNonTradeIgnore, RequireRestart = false, HintText = StrNonTradeIgnoreDesc, Order = 4)]
+        [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
+        public bool NonTradeIgnore { get; set; } = true;
         #endregion
 
         #region Warehouse
