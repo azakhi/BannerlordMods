@@ -67,6 +67,9 @@
     <string id="5F2B080E2E" text="All Heroes" />
     <string id="636DA1D35E" text="Player" />
     <string id="0380FD801C" text="Player &amp; Player Clan" />
+    <string id="65C08D4C2A" text="Player Clan" />
+    <string id="5016142882" text="Player Clan Except Companions" />
+    <string id="3FE8BC9F22" text="Only Companions" />
     <string id="F40D851137" text="(Mod) Levelling Rate" />
     <string id="78726ECC36" text="(Mod) Attribute" />
     <string id="862FD3C79C" text="(Mod) Focus" />
