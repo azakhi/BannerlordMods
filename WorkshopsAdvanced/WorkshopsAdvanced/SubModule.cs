@@ -59,6 +59,11 @@ namespace WorkshopsAdvanced
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.OnSettlementEnteredPrefix))));
             harmony.Patch(typeof(SellItemsAction).GetMethod("Apply", BindingFlags.Public | BindingFlags.Static), null,
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.ApplyPostfix))));
+
+            harmony.Patch(typeof(DefaultClanFinanceModel).GetMethod("CalculateHeroIncomeFromWorkshops", BindingFlags.NonPublic | BindingFlags.Instance),
+                new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.CalculateHeroIncomeFromWorkshopsPrefix))));
+            harmony.Patch(typeof(DefaultClanFinanceModel).GetMethod("CalculateHeroIncomeFromWorkshops", BindingFlags.NonPublic | BindingFlags.Instance), null,
+                new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.CalculateHeroIncomeFromWorkshopsPostfix))));
         }
 
         protected override void OnSubModuleUnloaded()
@@ -86,6 +91,7 @@ namespace WorkshopsAdvanced
     public class WorkshopBehaviourPatch
     {
         private static Workshop? _workshop;
+        private static float _previousGold;
 
         public static void ExpensePostfix(Workshop __instance, ref int __result)
         {
@@ -263,6 +269,27 @@ namespace WorkshopsAdvanced
             }
 
             Helper.CheckAndSellWorkshopOutputs(receiverParty.Settlement, subject.EquipmentElement.Item.ItemCategory);
+        }
+
+        public static bool CalculateHeroIncomeFromWorkshopsPrefix(Hero hero, ref ExplainedNumber goldChange, bool applyWithdrawals)
+        {
+            _previousGold = goldChange.ResultNumber;
+            return true;
+        }
+
+        public static void CalculateHeroIncomeFromWorkshopsPostfix(Hero hero, ref ExplainedNumber goldChange, bool applyWithdrawals)
+        {
+            if (!applyWithdrawals || hero == null || !hero.IsHumanPlayerCharacter)
+            {
+                return;
+            }
+
+            var tradeXPMult = MySettings.Instance?.ProfitTradeXPMult ?? 0f;
+            var change = MathF.Max(0f, goldChange.ResultNumber - _previousGold) * tradeXPMult;
+            if (change > 0f)
+            {
+                hero.HeroDeveloper.AddSkillXp(DefaultSkills.Trade, change);
+            }
         }
     }
 
@@ -679,6 +706,8 @@ namespace WorkshopsAdvanced
         private const string StrWageMultiplierDesc = "{=BF94C60D4B}Wage multiplier for all workforce levels and base value. Use this if you want to adjust profitability.";
         private const string StrNonTradeIgnore = "{=9456B57ACA}Ignore Non-trade Goods";
         private const string StrNonTradeIgnoreDesc = "{=E0C53CB714}Ignores non-trade when not selling to market. Recommended for a balanced game.";
+        private const string StrProfitTradeXPMult = "{=346A22CEB9}Profit Trade XP Multiplier";
+        private const string StrProfitTradeXPMultDesc = "{=E66DA0670B}Multiplier for Trade skill XP gained per daily profit from workshops.";
 
         private const string StrWarehouseGroupName = "{=6416E8CB5F}Warehouse";
         private const string StrWarehouseMinRent = "{=992858B61F}Minimum Warehouse Rent";
@@ -742,6 +771,10 @@ namespace WorkshopsAdvanced
         [SettingProperty(StrNonTradeIgnore, RequireRestart = false, HintText = StrNonTradeIgnoreDesc, Order = 5)]
         [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
         public bool NonTradeIgnore { get; set; } = true;
+
+        [SettingProperty(StrProfitTradeXPMult, 0f, 100f, RequireRestart = false, HintText = StrProfitTradeXPMultDesc, Order = 6)]
+        [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
+        public float ProfitTradeXPMult { get; set; } = 0f;
         #endregion
 
         #region Warehouse
