@@ -35,6 +35,8 @@
     <string id="D36A864461" text="Additional workshop count per clan tier. Added to the base value." />
     <string id="EC07A2D5C2" text="Production Multiplier" />
     <string id="AE6E81AE28" text="Production speed multiplier for workshops. Use this if you want to adjust profitability." />
+    <string id="E444B78BDF" text="Wage Multiplier" />
+    <string id="BF94C60D4B" text="Wage multiplier for all workforce levels and base value. Use this if you want to adjust profitability." />
     <string id="9456B57ACA" text="Ignore Non-trade Goods" />
     <string id="E0C53CB714" text="Ignores non-trade when not selling to market. Recommended for a balanced game." />
     <string id="6416E8CB5F" text="Warehouse" />

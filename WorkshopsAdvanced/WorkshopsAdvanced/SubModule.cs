@@ -270,6 +270,7 @@ namespace WorkshopsAdvanced
     {
         public static float GetWorkshopWageMultiplier(Workshop workshop)
         {
+            var multiplier = MySettings.Instance?.WageMultiplier ?? 1f;
             if (workshop.Owner.IsHumanPlayerCharacter)
             {
                 var lowWage = MySettings.Instance?.WorkforceLowWage ?? 0.6f;
@@ -278,12 +279,12 @@ namespace WorkshopsAdvanced
 
                 var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetWorkshopCustomizationData(workshop);
                 var level = customizationData.WorkforceLevel;
-                if (level < 0) return lowWage;
-                if (level == 1) return highWage;
-                if (level > 1) return maxWage;
+                if (level < 0) return lowWage * multiplier;
+                if (level == 1) return highWage * multiplier;
+                if (level > 1) return maxWage * multiplier;
             }
 
-            return 1f;
+            return multiplier;
         }
 
         public static int GetExtraWorkshopCountForTier(int tier)
@@ -674,6 +675,8 @@ namespace WorkshopsAdvanced
         private const string StrExtraCountPerTierDesc = "{=D36A864461}Additional workshop count per clan tier. Added to the base value.";
         private const string StrProductionMultiplier = "{=EC07A2D5C2}Production Multiplier";
         private const string StrProductionMultiplierDesc = "{=AE6E81AE28}Production speed multiplier for workshops. Use this if you want to adjust profitability.";
+        private const string StrWageMultiplier = "{=E444B78BDF}Wage Multiplier";
+        private const string StrWageMultiplierDesc = "{=BF94C60D4B}Wage multiplier for all workforce levels and base value. Use this if you want to adjust profitability.";
         private const string StrNonTradeIgnore = "{=9456B57ACA}Ignore Non-trade Goods";
         private const string StrNonTradeIgnoreDesc = "{=E0C53CB714}Ignores non-trade when not selling to market. Recommended for a balanced game.";
 
@@ -732,7 +735,11 @@ namespace WorkshopsAdvanced
         [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
         public float ProductionMultiplier { get; set; } = 1f;
 
-        [SettingProperty(StrNonTradeIgnore, RequireRestart = false, HintText = StrNonTradeIgnoreDesc, Order = 4)]
+        [SettingProperty(StrWageMultiplier, 0f, 10f, RequireRestart = false, HintText = StrWageMultiplierDesc, Order = 4)]
+        [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
+        public float WageMultiplier { get; set; } = 1f;
+
+        [SettingProperty(StrNonTradeIgnore, RequireRestart = false, HintText = StrNonTradeIgnoreDesc, Order = 5)]
         [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
         public bool NonTradeIgnore { get; set; } = true;
         #endregion
