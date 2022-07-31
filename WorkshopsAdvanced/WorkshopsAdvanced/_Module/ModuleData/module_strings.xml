@@ -16,6 +16,8 @@
   <string id="WA_Manage_Town_Workshop_Buy_From" text="{=0FFA1551F2}Buy From Market" />
   <string id="WA_Manage_Town_Workshop_Do_Not_Sell" text="{=299BB9B2BF}Do Not Sell To Market" />
   <string id="WA_Manage_Town_Workshop_Sell_To" text="{=583CFB91C5}Sell To Market" />
+  <string id="WA_Manage_Town_Workshop_Do_Not_Caravan" text="{=63F4810810}Do Not Sell To Caravan" />
+  <string id="WA_Manage_Town_Workshop_Sell_Caravan" text="{=88765A7012}Sell To Caravan" />
   <string id="WA_Manage_Town_Workshop_Need_Warehouse" text="{=D5D9571BAA}You need to rent a warehouse to change these." />
   <string id="WA_Adjust_Workforce_Menu_Name" text="{=8092596DE0}Adjust Workforce" />
   <string id="WA_Adjust_Workforce_Desc" text="{=BE032A38D8}Adjust workforce of your workshop" />

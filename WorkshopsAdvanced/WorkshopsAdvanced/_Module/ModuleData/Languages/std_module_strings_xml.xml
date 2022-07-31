@@ -17,6 +17,8 @@
     <string id="0FFA1551F2" text="Buy From Market" />
     <string id="299BB9B2BF" text="Do Not Sell To Market" />
     <string id="583CFB91C5" text="Sell To Market" />
+    <string id="63F4810810" text="Do Not Sell To Caravan" />
+    <string id="88765A7012" text="Sell To Caravan" />
     <string id="D5D9571BAA" text="You need to rent a warehouse to change these." />
     <string id="8092596DE0" text="Adjust Workforce" />
     <string id="BE032A38D8" text="Adjust workforce of your workshop" />

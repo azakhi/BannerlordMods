@@ -399,7 +399,7 @@ namespace WorkshopsAdvanced
                 return;
             }
 
-            var itemIndex = GetSellableOutputIndexFromWarehouse(settlement, itemCategory, true, out var workshopIndex);
+            var itemIndex = GetSellableOutputIndexFromWarehouse(settlement, itemCategory, true, false, out var workshopIndex);
             if (itemIndex >= 0)
             {
                 var isPriceGood = IsPriceGood(settlement, customizationData.Warehouse.GetItemAtIndex(itemIndex));
@@ -448,7 +448,7 @@ namespace WorkshopsAdvanced
 
             while (budget > 0)
             {
-                var itemIndex = GetSellableOutputIndexFromWarehouse(settlement, null, true, out var workshopIndex);
+                var itemIndex = GetSellableOutputIndexFromWarehouse(settlement, null, true, true, out var workshopIndex);
                 if (itemIndex < 0)
                 {
                     return;
@@ -475,7 +475,7 @@ namespace WorkshopsAdvanced
             }
         }
 
-        public static int GetSellableOutputIndexFromWarehouse(Settlement settlement, ItemCategory? itemCategory, bool onlyTradeGoods, out int workshopIndex)
+        public static int GetSellableOutputIndexFromWarehouse(Settlement settlement, ItemCategory? itemCategory, bool onlyTradeGoods, bool isCaravan, out int workshopIndex)
         {
             workshopIndex = -1;
             var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetSettlementCustomizationData(settlement);
@@ -496,7 +496,8 @@ namespace WorkshopsAdvanced
                 }
 
                 var workshopCustomizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetWorkshopCustomizationData(workshop);
-                if (!workshopCustomizationData.IsSellingToMarket)
+                var isSelling = isCaravan ? workshopCustomizationData.IsSellingToCaravan : workshopCustomizationData.IsSellingToMarket;
+                if (!isSelling)
                 {
                     continue;
                 }
@@ -837,6 +838,9 @@ namespace WorkshopsAdvanced
 
         [SaveableProperty(4)]
         internal int WorkforceLevel { get; set; } = 0;
+
+        [SaveableProperty(5)]
+        internal bool IsSellingToCaravan { get; set; } = true;
     }
 
     [SaveableRootClass(3)]
@@ -886,6 +890,8 @@ namespace WorkshopsAdvanced
         private readonly TextObject ManageTownWorkshopBuyFrom = GameTexts.FindText("WA_Manage_Town_Workshop_Buy_From");
         private readonly TextObject ManageTownWorkshopDoNotSell = GameTexts.FindText("WA_Manage_Town_Workshop_Do_Not_Sell");
         private readonly TextObject ManageTownWorkshopSellTo = GameTexts.FindText("WA_Manage_Town_Workshop_Sell_To");
+        private readonly TextObject ManageTownWorkshopDoNotCaravan = GameTexts.FindText("WA_Manage_Town_Workshop_Do_Not_Caravan");
+        private readonly TextObject ManageTownWorkshopSellCaravan = GameTexts.FindText("WA_Manage_Town_Workshop_Sell_Caravan");
         private readonly TextObject ManageTownWorkshopNeedWarehouse = GameTexts.FindText("WA_Manage_Town_Workshop_Need_Warehouse");
         private readonly TextObject AdjustWorkforceMenuName = GameTexts.FindText("WA_Adjust_Workforce_Menu_Name");
         private readonly TextObject AdjustWorkforceSelected = GameTexts.FindText("WA_Adjust_Selected");
@@ -909,6 +915,7 @@ namespace WorkshopsAdvanced
         private const string ManageTownWorkshopProductionId = "manage_town_workshop_production";
         private const string ManageTownWorkshopBuyFromMarketId = "manage_town_workshop_buy_from_market";
         private const string ManageTownWorkshopSellToMarketId = "manage_town_workshop_sell_to_market";
+        private const string ManageTownWorkshopSellToCaravanId = "manage_town_workshop_sell_to_caravan";
         private const string ManageTownWorkshopGoBackId = "manage_town_workshop_go_back";
         private const string AdjustWorkforceId = "adjust_workforce";
         private const string AdjustWorkforceLowId = "adjust_workforce_low";
@@ -1132,6 +1139,26 @@ namespace WorkshopsAdvanced
                     workshopCustomizationData.IsSellingToMarket = !workshopCustomizationData.IsSellingToMarket;
                     callbackArgs.MenuContext.Refresh();
                 }), -1, false, false, ManageTownWorkshopSellToMarketId);
+
+            var isSellingToCaravan = workshopCustomizationData.IsSellingToCaravan || !settlementCustomizationData.IsRentingWarehouse;
+            Campaign.Current.GameMenuManager.RemoveRelatedGameMenuOptions(ManageTownWorkshopSellToCaravanId);
+            AddGameMenuOptionWithRelatedObject(workshopGameMenu, ManageTownWorkshopSellToCaravanId, isSellingToCaravan ? ManageTownWorkshopDoNotCaravan : ManageTownWorkshopSellCaravan,
+                new GameMenuOption.OnConditionDelegate((callbackArgs) =>
+                {
+                    if (!settlementCustomizationData.IsRentingWarehouse)
+                    {
+                        callbackArgs.Tooltip = ManageTownWorkshopNeedWarehouse;
+                    }
+
+                    callbackArgs.optionLeaveType = GameMenuOption.LeaveType.Trade;
+                    callbackArgs.IsEnabled = settlementCustomizationData.IsRentingWarehouse;
+                    return true;
+                }),
+                new GameMenuOption.OnConsequenceDelegate((callbackArgs) =>
+                {
+                    workshopCustomizationData.IsSellingToCaravan = !workshopCustomizationData.IsSellingToCaravan;
+                    callbackArgs.MenuContext.Refresh();
+                }), -1, false, false, ManageTownWorkshopSellToCaravanId);
 
             Campaign.Current.GameMenuManager.RemoveRelatedGameMenuOptions(ManageTownWorkshopGoBackId);
             AddGameMenuOptionWithRelatedObject(workshopGameMenu, ManageTownWorkshopGoBackId, MenuGoBack,
