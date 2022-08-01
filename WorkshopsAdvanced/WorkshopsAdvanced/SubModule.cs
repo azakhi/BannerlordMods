@@ -953,7 +953,7 @@ namespace WorkshopsAdvanced
         private readonly TextObject InquiryStopRentingTitle = GameTexts.FindText("WA_Inquiry_Stop_Renting");
         private readonly TextObject InquiryStopRentingDesc = GameTexts.FindText("WA_Inquiry_Stop_Renting_Desc");
         private const string ManageWorkshopsDesc = "{=FCC955FAD7}Manage owned workshops.";
-        private const string ManageTownWorkshopDesc = "{=B3DAEC2B1D}Manage workshop behaviour.";
+        private const string ManageTownWorkshopDesc = "{=0F7F695CD1}You can manage your workshop ({WORKSHOPNAME}) here. Expected profit: {PROFIT}";
         private const string AdjustWorkforceDesc = "{=BE032A38D8}Adjust workforce of your workshop";
         private const string AdjustWorkforceLow = "{=DA35F5B05D}Lowered";
         private const string AdjustWorkforceNormal = "{=1C490DD392}Normal (Default)";
@@ -1101,6 +1101,8 @@ namespace WorkshopsAdvanced
                 Campaign.Current.SandBoxManager.GameStarter.AddGameMenu(workshopMenuId, ManageTownWorkshopDesc,
                     new OnInitDelegate((callbackArgs) =>
                     {
+                        var profit = Campaign.Current.Models.ClanFinanceModel.CalculateOwnerIncomeFromWorkshop(workshop); ;
+                        callbackArgs.MenuContext.GameMenu.GetText().SetTextVariable("WORKSHOPNAME", workshop.Name).SetTextVariable("PROFIT", profit);
                         callbackArgs.IsEnabled = true;
                         callbackArgs.optionLeaveType = GameMenuOption.LeaveType.Leave;
                         AddManageTownWorkshopMenuOptions(workshopMenuId, workshop);

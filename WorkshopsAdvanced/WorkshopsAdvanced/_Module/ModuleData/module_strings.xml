@@ -9,7 +9,7 @@
   <string id="WA_Manage_Workshops_Stop_Renting" text="{=E77E70DE13}Stop Renting Warehouse" />
   <string id="WA_Manage_Workshops_Show_Warehouse" text="{=0E141AD816}Show Warehouse" />
   <string id="WA_Manage_Workshops_Not_Renting" text="{=2896725ECC}Not Renting Warehouse" />
-  <string id="WA_Manage_Town_Workshop_Desc" text="{=B3DAEC2B1D}Manage workshop behaviour." />
+  <string id="WA_Manage_Town_Workshop_Desc" text="{=0F7F695CD1}You can manage your workshop ({WORKSHOPNAME}) here. Expected profit: {PROFIT}" />
   <string id="WA_Manage_Town_Workshop_Stop_Working" text="{=69E52EB268}Stop Working" />
   <string id="WA_Manage_Town_Workshop_Continue_Working" text="{=9DC4118848}Continue Working" />
   <string id="WA_Manage_Town_Workshop_Do_Not_Buy" text="{=6C0E3AC340}Do Not Buy From Market" />

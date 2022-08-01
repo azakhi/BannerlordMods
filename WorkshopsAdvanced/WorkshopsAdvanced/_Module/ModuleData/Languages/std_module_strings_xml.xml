@@ -10,7 +10,7 @@
     <string id="E77E70DE13" text="Stop Renting Warehouse" />
     <string id="0E141AD816" text="Show Warehouse" />
     <string id="2896725ECC" text="Not Renting Warehouse" />
-    <string id="B3DAEC2B1D" text="Manage workshop behaviour." />
+    <string id="0F7F695CD1" text="You can manage your workshop ({WORKSHOPNAME}) here. Expected profit: {PROFIT}" />
     <string id="69E52EB268" text="Stop Working" />
     <string id="9DC4118848" text="Continue Working" />
     <string id="6C0E3AC340" text="Do Not Buy From Market" />
