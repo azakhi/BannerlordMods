@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<base xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" type="string">
+  <strings>
+    <string id="0DB377921F" text="General" />
+    <string id="567E405D89" text="Apply To" />
+    <string id="A31DD4A817" text="Select which heroes general customizations should apply to." />
+    <string id="1122D38AAE" text="Levelling XP Multiplier" />
+    <string id="8AACB0EAB4" text="The multiplier for levelling XP gained." />
+    <string id="BC96BC6657" text="Levelling Smoothing Level" />
+    <string id="D84CC6EB2F" text="The level of exponential smoothing of Character Level requirement." />
+    <string id="FF9DE8BCF2" text="Skill XP Multiplier" />
+    <string id="2CEFC4D24B" text="The multiplier for all skill XP gained." />
+    <string id="0700EF4DA7" text="Skill Smoothing Level" />
+    <string id="71B6CD41BC" text="The level of exponential smoothing of Skill Level requirement." />
+    <string id="BABCC52183" text="Attributes &amp; Focus Points" />
+    <string id="CF3766BA2B" text="Select which heroes attribute &amp; focus points customizations should apply to." />
+    <string id="BAF9A66B74" text="Extra Learning Rate Per Attribute" />
+    <string id="A546022437" text="This is added to base game value." />
+    <string id="BF0CD17D57" text="Extra Learning Rate Per Focus Point" />
+    <string id="2365E1286F" text="Min Learning Rate Per Attribute" />
+    <string id="FC30F87396" text="Sets minimum learning rate based on attribute. This is added to base game value." />
+    <string id="BCC3C27303" text="Min Learning Rate Per Focus Point" />
+    <string id="F55354B5E5" text="Sets minimum learning rate based on focus points. This is added to base game value." />
+    <string id="FE1E9D5DE8" text="Learning Limit (Applies to All Heroes)" />
+    <string id="26DF5A5313" text="Extra Learning Limit Per Attribute" />
+    <string id="640D18E87E" text="This is added to base game value. Per point above 1, similar to the game." />
+    <string id="EF0584D028" text="Extra Learning Limit Per Focus Point" />
+    <string id="A4D2C2B871" text="Skill Specific" />
+    <string id="3C62892519" text="Select which heroes skill specific customizations should apply to." />
+    <string id="47CF2A6D2A" text="One Handed XP Multiplier" />
+    <string id="AE98D5EF09" text="The multiplier for all One Handed skill XP gained." />
+    <string id="9C6F1469A2" text="Two Handed XP Multiplier" />
+    <string id="D8E16E7BBE" text="The multiplier for all Two Handed skill XP gained." />
+    <string id="204AB46677" text="Polearm XP Multiplier" />
+    <string id="A3B683B902" text="The multiplier for all Polearm skill XP gained." />
+    <string id="D53C239005" text="Bow XP Multiplier" />
+    <string id="21BED56921" text="The multiplier for all Bow skill XP gained." />
+    <string id="EDCAE8AB36" text="Crossbow XP Multiplier" />
+    <string id="C90A9ADB04" text="The multiplier for all Crossbow skill XP gained." />
+    <string id="58A5B85B28" text="Throwing XP Multiplier" />
+    <string id="F4B946B544" text="The multiplier for all Throwing skill XP gained." />
+    <string id="EF9AECE92E" text="Riding XP Multiplier" />
+    <string id="D9FB9818B5" text="The multiplier for all Riding skill XP gained." />
+    <string id="B43BFA5644" text="Athletics XP Multiplier" />
+    <string id="3E3E4483E8" text="The multiplier for all Athletics skill XP gained." />
+    <string id="65C93EC53A" text="Smithing XP Multiplier" />
+    <string id="0ADC181017" text="The multiplier for all Smithing skill XP gained." />
+    <string id="7C01F561FC" text="Scouting XP Multiplier" />
+    <string id="561FFDA4F3" text="The multiplier for all Scouting skill XP gained." />
+    <string id="D7341675DF" text="Tactics XP Multiplier" />
+    <string id="11E81C20D4" text="The multiplier for all Tactics skill XP gained." />
+    <string id="B2264D9242" text="Roguery XP Multiplier" />
+    <string id="7FBEAD18CC" text="The multiplier for all Roguery skill XP gained." />
+    <string id="A5B8DB588D" text="Charm XP Multiplier" />
+    <string id="98F9BD8663" text="The multiplier for all Charm skill XP gained." />
+    <string id="7A66BFE971" text="Leadership XP Multiplier" />
+    <string id="29844435E4" text="The multiplier for all Leadership skill XP gained." />
+    <string id="C641645018" text="Trade XP Multiplier" />
+    <string id="8994140CB9" text="The multiplier for all Trade skill XP gained." />
+    <string id="3C1619BE9F" text="Steward XP Multiplier" />
+    <string id="E4E55C8DD6" text="The multiplier for all Steward skill XP gained." />
+    <string id="0C2BE0D112" text="Medicine XP Multiplier" />
+    <string id="9D7F88794B" text="The multiplier for all Medicine skill XP gained." />
+    <string id="D13C1A1B68" text="Engineering XP Multiplier" />
+    <string id="FD0D3A17CB" text="The multiplier for all Engineering skill XP gained." />
+    <string id="7DDAA4BD82" text="Levelling Customizer" />
+    <string id="5F2B080E2E" text="All Heroes" />
+    <string id="636DA1D35E" text="Player" />
+    <string id="0380FD801C" text="Player &amp; Player Clan" />
+    <string id="65C08D4C2A" text="Player Clan" />
+    <string id="5016142882" text="Player Clan Except Companions" />
+    <string id="3FE8BC9F22" text="Only Companions" />
+    <string id="F40D851137" text="(Mod) Levelling Rate" />
+    <string id="78726ECC36" text="(Mod) Attribute" />
+    <string id="862FD3C79C" text="(Mod) Focus" />
+    <string id="7BBA0FCCA1" text="(Mod) Levelling Customizer" />
+  </strings>
+</base>

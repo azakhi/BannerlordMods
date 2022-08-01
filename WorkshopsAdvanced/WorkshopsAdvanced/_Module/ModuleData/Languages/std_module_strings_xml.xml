@@ -17,6 +17,8 @@
     <string id="0FFA1551F2" text="Buy From Market" />
     <string id="299BB9B2BF" text="Do Not Sell To Market" />
     <string id="583CFB91C5" text="Sell To Market" />
+    <string id="63F4810810" text="Do Not Sell To Caravan" />
+    <string id="88765A7012" text="Sell To Caravan" />
     <string id="D5D9571BAA" text="You need to rent a warehouse to change these." />
     <string id="8092596DE0" text="Adjust Workforce" />
     <string id="BE032A38D8" text="Adjust workforce of your workshop" />
@@ -33,6 +35,12 @@
     <string id="D36A864461" text="Additional workshop count per clan tier. Added to the base value." />
     <string id="EC07A2D5C2" text="Production Multiplier" />
     <string id="AE6E81AE28" text="Production speed multiplier for workshops. Use this if you want to adjust profitability." />
+    <string id="E444B78BDF" text="Wage Multiplier" />
+    <string id="BF94C60D4B" text="Wage multiplier for all workforce levels and base value. Use this if you want to adjust profitability." />
+    <string id="9456B57ACA" text="Ignore Non-trade Goods" />
+    <string id="E0C53CB714" text="Ignores non-trade when not selling to market. Recommended for a balanced game." />
+    <string id="346A22CEB9" text="Profit Trade XP Multiplier" />
+    <string id="E66DA0670B" text="Multiplier for Trade skill XP gained per daily profit from workshops." />
     <string id="6416E8CB5F" text="Warehouse" />
     <string id="992858B61F" text="Minimum Warehouse Rent" />
     <string id="0109B196BF" text="Minimum rent to be paid if the rented warehouse is empty." />

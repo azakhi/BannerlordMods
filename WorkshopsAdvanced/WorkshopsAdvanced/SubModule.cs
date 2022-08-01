@@ -59,6 +59,11 @@ namespace WorkshopsAdvanced
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.OnSettlementEnteredPrefix))));
             harmony.Patch(typeof(SellItemsAction).GetMethod("Apply", BindingFlags.Public | BindingFlags.Static), null,
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.ApplyPostfix))));
+
+            harmony.Patch(typeof(DefaultClanFinanceModel).GetMethod("CalculateHeroIncomeFromWorkshops", BindingFlags.NonPublic | BindingFlags.Instance),
+                new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.CalculateHeroIncomeFromWorkshopsPrefix))));
+            harmony.Patch(typeof(DefaultClanFinanceModel).GetMethod("CalculateHeroIncomeFromWorkshops", BindingFlags.NonPublic | BindingFlags.Instance), null,
+                new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.CalculateHeroIncomeFromWorkshopsPostfix))));
         }
 
         protected override void OnSubModuleUnloaded()
@@ -89,6 +94,7 @@ namespace WorkshopsAdvanced
     public class WorkshopBehaviourPatch
     {
         private static Workshop? _workshop;
+        private static float _previousGold;
 
         public static void ExpensePostfix(Workshop __instance, ref int __result)
         {
@@ -178,7 +184,8 @@ namespace WorkshopsAdvanced
                 return true;
             }
 
-            if (!outputItem.IsTradeGood)
+            var ignoreNonTrade = MySettings.Instance?.NonTradeIgnore ?? true;
+            if (ignoreNonTrade && !outputItem.IsTradeGood)
             {
                 return true;
             }
@@ -253,12 +260,39 @@ namespace WorkshopsAdvanced
 
         public static void ApplyPostfix(PartyBase receiverParty, PartyBase payerParty, ItemRosterElement subject, int number, Settlement currentSettlement = null)
         {
-            if (subject.EquipmentElement.Item == null || !subject.EquipmentElement.Item.IsTradeGood || receiverParty == null || !receiverParty.IsSettlement)
+            if (subject.EquipmentElement.Item == null || receiverParty == null || !receiverParty.IsSettlement)
+            {
+                return;
+            }
+
+            var ignoreNonTrade = MySettings.Instance?.NonTradeIgnore ?? true;
+            if (ignoreNonTrade && !subject.EquipmentElement.Item.IsTradeGood)
             {
                 return;
             }
 
             Helper.CheckAndSellWorkshopOutputs(receiverParty.Settlement, subject.EquipmentElement.Item.ItemCategory);
+        }
+
+        public static bool CalculateHeroIncomeFromWorkshopsPrefix(Hero hero, ref ExplainedNumber goldChange, bool applyWithdrawals)
+        {
+            _previousGold = goldChange.ResultNumber;
+            return true;
+        }
+
+        public static void CalculateHeroIncomeFromWorkshopsPostfix(Hero hero, ref ExplainedNumber goldChange, bool applyWithdrawals)
+        {
+            if (!applyWithdrawals || hero == null || !hero.IsHumanPlayerCharacter)
+            {
+                return;
+            }
+
+            var tradeXPMult = MySettings.Instance?.ProfitTradeXPMult ?? 0f;
+            var change = MathF.Max(0f, goldChange.ResultNumber - _previousGold) * tradeXPMult;
+            if (change > 0f)
+            {
+                hero.HeroDeveloper.AddSkillXp(DefaultSkills.Trade, change);
+            }
         }
     }
 
@@ -266,6 +300,7 @@ namespace WorkshopsAdvanced
     {
         public static float GetWorkshopWageMultiplier(Workshop workshop)
         {
+            var multiplier = MySettings.Instance?.WageMultiplier ?? 1f;
             if (workshop.Owner.IsHumanPlayerCharacter)
             {
                 var lowWage = MySettings.Instance?.WorkforceLowWage ?? 0.6f;
@@ -274,12 +309,12 @@ namespace WorkshopsAdvanced
 
                 var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetWorkshopCustomizationData(workshop);
                 var level = customizationData.WorkforceLevel;
-                if (level < 0) return lowWage;
-                if (level == 1) return highWage;
-                if (level > 1) return maxWage;
+                if (level < 0) return lowWage * multiplier;
+                if (level == 1) return highWage * multiplier;
+                if (level > 1) return maxWage * multiplier;
             }
 
-            return 1f;
+            return multiplier;
         }
 
         public static int GetExtraWorkshopCountForTier(int tier)
@@ -402,7 +437,7 @@ namespace WorkshopsAdvanced
                 return;
             }
 
-            var itemIndex = GetSellableOutputIndexFromWarehouse(settlement, itemCategory, true, out var workshopIndex);
+            var itemIndex = GetSellableOutputIndexFromWarehouse(settlement, itemCategory, false, out var workshopIndex);
             if (itemIndex >= 0)
             {
                 var isPriceGood = IsPriceGood(settlement, customizationData.Warehouse.GetItemAtIndex(itemIndex));
@@ -478,7 +513,7 @@ namespace WorkshopsAdvanced
             }
         }
 
-        public static int GetSellableOutputIndexFromWarehouse(Settlement settlement, ItemCategory? itemCategory, bool onlyTradeGoods, out int workshopIndex)
+        public static int GetSellableOutputIndexFromWarehouse(Settlement settlement, ItemCategory? itemCategory, bool isCaravan, out int workshopIndex)
         {
             workshopIndex = -1;
             var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetSettlementCustomizationData(settlement);
@@ -487,6 +522,7 @@ namespace WorkshopsAdvanced
                 return -1;
             }
 
+            var ignoreNonTrade = MySettings.Instance?.NonTradeIgnore ?? true;
             var warehouse = customizationData.Warehouse;
             var offset = MBRandom.RandomInt(0, settlement.Town.Workshops.Length);
             for (var i = 0; i < settlement.Town.Workshops.Length; i++)
@@ -499,7 +535,8 @@ namespace WorkshopsAdvanced
                 }
 
                 var workshopCustomizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetWorkshopCustomizationData(workshop);
-                if (!workshopCustomizationData.IsSellingToMarket)
+                var isSelling = isCaravan ? workshopCustomizationData.IsSellingToCaravan : workshopCustomizationData.IsSellingToMarket;
+                if (!isSelling)
                 {
                     continue;
                 }
@@ -513,7 +550,7 @@ namespace WorkshopsAdvanced
                             for (var j = 0; j < warehouse.Count; j++)
                             {
                                 var item = warehouse[j].EquipmentElement.Item;
-                                if (item.ItemCategory == output.Item1 && (!onlyTradeGoods || item.IsTradeGood))
+                                if (item.ItemCategory == output.Item1 && (!ignoreNonTrade || item.IsTradeGood))
                                 {
                                     return j;
                                 }
@@ -531,7 +568,8 @@ namespace WorkshopsAdvanced
             if (!item.IsTradeGood)
             {
                 // Non-trade items should never be part of smart selling
-                return false;
+                var ignoreNonTrade = MySettings.Instance?.NonTradeIgnore ?? true;
+                return !ignoreNonTrade;
             }
 
             var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetSettlementCustomizationData(settlement);
@@ -667,6 +705,12 @@ namespace WorkshopsAdvanced
         private const string StrExtraCountPerTierDesc = "{=D36A864461}Additional workshop count per clan tier. Added to the base value.";
         private const string StrProductionMultiplier = "{=EC07A2D5C2}Production Multiplier";
         private const string StrProductionMultiplierDesc = "{=AE6E81AE28}Production speed multiplier for workshops. Use this if you want to adjust profitability.";
+        private const string StrWageMultiplier = "{=E444B78BDF}Wage Multiplier";
+        private const string StrWageMultiplierDesc = "{=BF94C60D4B}Wage multiplier for all workforce levels and base value. Use this if you want to adjust profitability.";
+        private const string StrNonTradeIgnore = "{=9456B57ACA}Ignore Non-trade Goods";
+        private const string StrNonTradeIgnoreDesc = "{=E0C53CB714}Ignores non-trade when not selling to market. Recommended for a balanced game.";
+        private const string StrProfitTradeXPMult = "{=346A22CEB9}Profit Trade XP Multiplier";
+        private const string StrProfitTradeXPMultDesc = "{=E66DA0670B}Multiplier for Trade skill XP gained per daily profit from workshops.";
 
         private const string StrWarehouseGroupName = "{=6416E8CB5F}Warehouse";
         private const string StrWarehouseMinRent = "{=992858B61F}Minimum Warehouse Rent";
@@ -722,6 +766,18 @@ namespace WorkshopsAdvanced
         [SettingProperty(StrProductionMultiplier, 0f, 10f, RequireRestart = false, HintText = StrProductionMultiplierDesc, Order = 3)]
         [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
         public float ProductionMultiplier { get; set; } = 1f;
+
+        [SettingProperty(StrWageMultiplier, 0f, 10f, RequireRestart = false, HintText = StrWageMultiplierDesc, Order = 4)]
+        [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
+        public float WageMultiplier { get; set; } = 1f;
+
+        [SettingProperty(StrNonTradeIgnore, RequireRestart = false, HintText = StrNonTradeIgnoreDesc, Order = 5)]
+        [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
+        public bool NonTradeIgnore { get; set; } = true;
+
+        [SettingProperty(StrProfitTradeXPMult, 0f, 100f, RequireRestart = false, HintText = StrProfitTradeXPMultDesc, Order = 6)]
+        [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
+        public float ProfitTradeXPMult { get; set; } = 0f;
         #endregion
 
         #region Warehouse
@@ -840,6 +896,9 @@ namespace WorkshopsAdvanced
 
         [SaveableProperty(4)]
         internal int WorkforceLevel { get; set; } = 0;
+
+        [SaveableProperty(5)]
+        internal bool IsSellingToCaravan { get; set; } = true;
     }
 
     [SaveableRootClass(3)]
@@ -889,6 +948,8 @@ namespace WorkshopsAdvanced
         private readonly TextObject ManageTownWorkshopBuyFrom = GameTexts.FindText("WA_Manage_Town_Workshop_Buy_From");
         private readonly TextObject ManageTownWorkshopDoNotSell = GameTexts.FindText("WA_Manage_Town_Workshop_Do_Not_Sell");
         private readonly TextObject ManageTownWorkshopSellTo = GameTexts.FindText("WA_Manage_Town_Workshop_Sell_To");
+        private readonly TextObject ManageTownWorkshopDoNotCaravan = GameTexts.FindText("WA_Manage_Town_Workshop_Do_Not_Caravan");
+        private readonly TextObject ManageTownWorkshopSellCaravan = GameTexts.FindText("WA_Manage_Town_Workshop_Sell_Caravan");
         private readonly TextObject ManageTownWorkshopNeedWarehouse = GameTexts.FindText("WA_Manage_Town_Workshop_Need_Warehouse");
         private readonly TextObject AdjustWorkforceMenuName = GameTexts.FindText("WA_Adjust_Workforce_Menu_Name");
         private readonly TextObject AdjustWorkforceSelected = GameTexts.FindText("WA_Adjust_Selected");
@@ -912,6 +973,7 @@ namespace WorkshopsAdvanced
         private const string ManageTownWorkshopProductionId = "manage_town_workshop_production";
         private const string ManageTownWorkshopBuyFromMarketId = "manage_town_workshop_buy_from_market";
         private const string ManageTownWorkshopSellToMarketId = "manage_town_workshop_sell_to_market";
+        private const string ManageTownWorkshopSellToCaravanId = "manage_town_workshop_sell_to_caravan";
         private const string ManageTownWorkshopGoBackId = "manage_town_workshop_go_back";
         private const string AdjustWorkforceId = "adjust_workforce";
         private const string AdjustWorkforceLowId = "adjust_workforce_low";
@@ -1151,6 +1213,26 @@ namespace WorkshopsAdvanced
                     workshopCustomizationData.IsSellingToMarket = !workshopCustomizationData.IsSellingToMarket;
                     callbackArgs.MenuContext.Refresh();
                 }), -1, false, false, ManageTownWorkshopSellToMarketId);
+
+            var isSellingToCaravan = workshopCustomizationData.IsSellingToCaravan || !settlementCustomizationData.IsRentingWarehouse;
+            Campaign.Current.GameMenuManager.RemoveRelatedGameMenuOptions(ManageTownWorkshopSellToCaravanId);
+            AddGameMenuOptionWithRelatedObject(workshopGameMenu, ManageTownWorkshopSellToCaravanId, isSellingToCaravan ? ManageTownWorkshopDoNotCaravan : ManageTownWorkshopSellCaravan,
+                new GameMenuOption.OnConditionDelegate((callbackArgs) =>
+                {
+                    if (!settlementCustomizationData.IsRentingWarehouse)
+                    {
+                        callbackArgs.Tooltip = ManageTownWorkshopNeedWarehouse;
+                    }
+
+                    callbackArgs.optionLeaveType = GameMenuOption.LeaveType.Trade;
+                    callbackArgs.IsEnabled = settlementCustomizationData.IsRentingWarehouse;
+                    return true;
+                }),
+                new GameMenuOption.OnConsequenceDelegate((callbackArgs) =>
+                {
+                    workshopCustomizationData.IsSellingToCaravan = !workshopCustomizationData.IsSellingToCaravan;
+                    callbackArgs.MenuContext.Refresh();
+                }), -1, false, false, ManageTownWorkshopSellToCaravanId);
 
             Campaign.Current.GameMenuManager.RemoveRelatedGameMenuOptions(ManageTownWorkshopGoBackId);
             AddGameMenuOptionWithRelatedObject(workshopGameMenu, ManageTownWorkshopGoBackId, MenuGoBack,
