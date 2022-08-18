@@ -41,6 +41,8 @@
     <string id="E0C53CB714" text="Ignores non-trade when not selling to market. Recommended for a balanced game." />
     <string id="346A22CEB9" text="Profit Trade XP Multiplier" />
     <string id="E66DA0670B" text="Multiplier for Trade skill XP gained per daily profit from workshops." />
+    <string id="364475D5BF" text="Min Capital To Support Workshop" />
+    <string id="2AFDF66BC5" text="Workshop is supplied money from player when capital is under this value to prevent bankruptcy." />
     <string id="6416E8CB5F" text="Warehouse" />
     <string id="992858B61F" text="Minimum Warehouse Rent" />
     <string id="0109B196BF" text="Minimum rent to be paid if the rented warehouse is empty." />

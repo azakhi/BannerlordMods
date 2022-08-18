@@ -54,6 +54,8 @@ namespace WorkshopsAdvanced
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.ProduceOutputPrefix))));
             harmony.Patch(typeof(WorkshopsCampaignBehavior).GetMethod("ConsumeInput", BindingFlags.NonPublic | BindingFlags.Static),
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.ConsumeInputPrefix))));
+            harmony.Patch(typeof(WorkshopsCampaignBehavior).GetMethod("HandleDailyExpense", BindingFlags.NonPublic | BindingFlags.Instance),
+                new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.HandleDailyExpensePrefix))));
 
             harmony.Patch(typeof(CaravansCampaignBehavior).GetMethod("OnSettlementEntered", BindingFlags.Public | BindingFlags.Instance),
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.OnSettlementEnteredPrefix))));
@@ -252,6 +254,24 @@ namespace WorkshopsAdvanced
             customizationData.Warehouse.AddToCounts(itemAtIndex, -1);
             CampaignEventDispatcher.Instance.OnItemConsumed(itemAtIndex, town.Owner.Settlement, 1);
             return false;
+        }
+
+        public static bool HandleDailyExpensePrefix(Workshop shop)
+        {
+            if (!shop.Owner.IsHumanPlayerCharacter)
+            {
+                return true;
+            }
+
+            var minCapital = MySettings.Instance?.WorkshopMinCapital ?? 0;
+            var diff = minCapital - shop.Capital;
+            if (diff > 0 && shop.Owner.Gold >= diff)
+            {
+                shop.Owner.Gold -= diff;
+                shop.ChangeGold(diff);
+            }
+
+            return true;
         }
 
         public static bool OnSettlementEnteredPrefix(MobileParty mobileParty, Settlement settlement, Hero hero)
@@ -728,6 +748,8 @@ namespace WorkshopsAdvanced
         private const string StrNonTradeIgnoreDesc = "{=E0C53CB714}Ignores non-trade when not selling to market. Recommended for a balanced game.";
         private const string StrProfitTradeXPMult = "{=346A22CEB9}Profit Trade XP Multiplier";
         private const string StrProfitTradeXPMultDesc = "{=E66DA0670B}Multiplier for Trade skill XP gained per daily profit from workshops.";
+        private const string StrWorkshopMinCapital = "{=364475D5BF}Min Capital To Support Workshop";
+        private const string StrWorkshopMinCapitalDesc = "{=2AFDF66BC5}Workshop is supplied money from player when capital is under this value to prevent bankruptcy.";
 
         private const string StrWarehouseGroupName = "{=6416E8CB5F}Warehouse";
         private const string StrWarehouseMinRent = "{=992858B61F}Minimum Warehouse Rent";
@@ -795,6 +817,10 @@ namespace WorkshopsAdvanced
         [SettingProperty(StrProfitTradeXPMult, 0f, 100f, RequireRestart = false, HintText = StrProfitTradeXPMultDesc, Order = 6)]
         [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
         public float ProfitTradeXPMult { get; set; } = 0f;
+
+        [SettingProperty(StrWorkshopMinCapital, 0, 20000, RequireRestart = false, HintText = StrWorkshopMinCapitalDesc, Order = 7)]
+        [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
+        public int WorkshopMinCapital { get; set; } = 3000;
         #endregion
 
         #region Warehouse
