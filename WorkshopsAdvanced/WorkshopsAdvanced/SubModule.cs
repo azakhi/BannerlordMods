@@ -64,6 +64,11 @@ namespace WorkshopsAdvanced
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.CalculateHeroIncomeFromWorkshopsPrefix))));
             harmony.Patch(typeof(DefaultClanFinanceModel).GetMethod("CalculateHeroIncomeFromWorkshops", BindingFlags.NonPublic | BindingFlags.Instance), null,
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.CalculateHeroIncomeFromWorkshopsPostfix))));
+
+#if DEBUG
+            harmony.Patch(typeof(DefaultDisguiseDetectionModel).GetMethod("CalculateDisguiseDetectionProbability", BindingFlags.Public | BindingFlags.Instance), null,
+                new HarmonyMethod(typeof(DebugPatch).GetMethod(nameof(DebugPatch.CalculateDisguiseDetectionProbabilityPostfix))));
+#endif
         }
 
         protected override void OnSubModuleUnloaded()
@@ -87,6 +92,16 @@ namespace WorkshopsAdvanced
             }
         }
     }
+
+#if DEBUG
+    public class DebugPatch
+    {
+        public static void CalculateDisguiseDetectionProbabilityPostfix(ref float __result, Settlement settlement)
+        {
+            __result = 1f;
+        }
+    }
+#endif
 
     public class WorkshopBehaviourPatch
     {
@@ -355,6 +370,11 @@ namespace WorkshopsAdvanced
             {
                 var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetSettlementCustomizationData(settlement);
                 if (!customizationData.IsRentingWarehouse)
+                {
+                    continue;
+                }
+
+                if (FactionManager.IsAtWarAgainstFaction(Clan.PlayerClan, settlement.MapFaction))
                 {
                     continue;
                 }
@@ -1023,7 +1043,7 @@ namespace WorkshopsAdvanced
                 new GameMenuOption.OnConditionDelegate((callbackArgs) =>
                 {
                     callbackArgs.optionLeaveType = GameMenuOption.LeaveType.Submenu;
-                    callbackArgs.IsEnabled = true;
+                    callbackArgs.IsEnabled = !FactionManager.IsAtWarAgainstFaction(Clan.PlayerClan, Settlement.CurrentSettlement.MapFaction);
                     return true;
                 }),
                 new GameMenuOption.OnConsequenceDelegate((callbackArgs) =>
