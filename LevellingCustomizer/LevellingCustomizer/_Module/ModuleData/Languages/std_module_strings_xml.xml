@@ -63,6 +63,9 @@
     <string id="9D7F88794B" text="The multiplier for all Medicine skill XP gained." />
     <string id="D13C1A1B68" text="Engineering XP Multiplier" />
     <string id="FD0D3A17CB" text="The multiplier for all Engineering skill XP gained." />
+    <string id="6311AE17C1" text="Other" />
+    <string id="2A289A7DBA" text="Max Skill Level" />
+    <string id="401BA742E7" text="The maximum level skills can reach." />
     <string id="7DDAA4BD82" text="Levelling Customizer" />
     <string id="5F2B080E2E" text="All Heroes" />
     <string id="636DA1D35E" text="Player" />
@@ -74,5 +77,6 @@
     <string id="78726ECC36" text="(Mod) Attribute" />
     <string id="862FD3C79C" text="(Mod) Focus" />
     <string id="7BBA0FCCA1" text="(Mod) Levelling Customizer" />
+    <string id="BF5B4203BB" text="(Mod) Max Skill Level Reached" />
   </strings>
 </base>

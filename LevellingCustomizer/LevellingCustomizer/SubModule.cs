@@ -136,6 +136,10 @@ namespace LevellingCustomizer
         private const string StrMedicineMultiplierDesc = "{=9D7F88794B}The multiplier for all Medicine skill XP gained.";
         private const string StrEngineeringMultiplier = "{=D13C1A1B68}Engineering XP Multiplier";
         private const string StrEngineeringMultiplierDesc = "{=FD0D3A17CB}The multiplier for all Engineering skill XP gained.";
+
+        private const string StrOther = "{=6311AE17C1}Other";
+        private const string StrMaxSkillLevel = "{=2A289A7DBA}Max Skill Level";
+        private const string StrMaxSkillLevelDesc = "{=401BA742E7}The maximum level skills can reach.";
         #endregion
 
         #region General
@@ -278,6 +282,14 @@ namespace LevellingCustomizer
 
         #endregion
 
+        #region Other
+
+        [SettingProperty(StrMaxSkillLevel, 100, 1000, RequireRestart = false, HintText = StrMaxSkillLevelDesc, Order = 1)]
+        [SettingPropertyGroup(StrOther, GroupOrder = 5)]
+        public int MaxSkillLevel { get; set; } = 400;
+
+        #endregion
+
         public override IDictionary<string, Func<BaseSettings>> GetAvailablePresets()
         {
             var basePresets = base.GetAvailablePresets(); // include the 'Default' preset that MCM provides
@@ -379,6 +391,14 @@ namespace LevellingCustomizer
 
         public static ExplainedNumber CalculateLearningRate(Hero hero, SkillObject skill, int attributeValue, int focusValue, int skillValue, int characterLevel, bool includeDescriptions = false)
         {
+            var maxSkillLevel = MySettings.Instance?.MaxSkillLevel ?? 400;
+            if (skillValue >= maxSkillLevel)
+            {
+                var result = new ExplainedNumber(1.25f, includeDescriptions, null);
+                result.AddFactor(-1f, new TextObject("{=BF5B4203BB}(Mod) Max Skill Level Reached", null));
+                return result;
+            }
+
             var attributeName = skill.CharacterAttribute.Name;
             var learningRate = Campaign.Current.Models.CharacterDevelopmentModel.CalculateLearningRate(attributeValue, focusValue, skillValue, characterLevel, attributeName, includeDescriptions);
             AddAttrFocusExtraLearningRate(hero, ref learningRate, attributeValue, focusValue);
