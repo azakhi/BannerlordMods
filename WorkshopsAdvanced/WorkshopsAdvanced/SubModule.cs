@@ -70,6 +70,8 @@ namespace WorkshopsAdvanced
 #if DEBUG
             harmony.Patch(typeof(DefaultDisguiseDetectionModel).GetMethod("CalculateDisguiseDetectionProbability", BindingFlags.Public | BindingFlags.Instance), null,
                 new HarmonyMethod(typeof(DebugPatch).GetMethod(nameof(DebugPatch.CalculateDisguiseDetectionProbabilityPostfix))));
+            harmony.Patch(typeof(MobileParty).GetMethod("CanAttack", BindingFlags.NonPublic | BindingFlags.Instance), null,
+                new HarmonyMethod(typeof(DebugPatch).GetMethod(nameof(DebugPatch.CanAttackPostfix))));
 #endif
         }
 
@@ -101,6 +103,24 @@ namespace WorkshopsAdvanced
         public static void CalculateDisguiseDetectionProbabilityPostfix(ref float __result, Settlement settlement)
         {
             __result = 1f;
+        }
+
+        public static void CanAttackPostfix(ref bool __result, MobileParty targetParty)
+        {
+            if (targetParty.IsMainParty)
+            {
+                __result = false;
+            }
+        }
+    }
+
+    public class DebugHelpers
+    {
+        [CommandLineFunctionality.CommandLineArgumentFunction("give_player_gold", "workshopsadvanced")]
+        public static string GivePlayerGold(List<string> strings)
+        {
+            GiveGoldAction.ApplyBetweenCharacters(null, Hero.MainHero, 100000, true);
+            return "done";
         }
     }
 #endif
