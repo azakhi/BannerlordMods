@@ -36,6 +36,8 @@ namespace WorkshopsAdvanced
 
             harmony.Patch(typeof(Workshop).GetMethod("get_Expense", BindingFlags.Public | BindingFlags.Instance), null,
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.ExpensePostfix))));
+            harmony.Patch(typeof(Workshop).GetMethod("get_IsRunning", BindingFlags.Public | BindingFlags.Instance), null,
+                new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.IsRunningPostfix))));
             harmony.Patch(typeof(DefaultWorkshopModel).GetMethod("GetMaxWorkshopCountForTier", BindingFlags.Public | BindingFlags.Instance), null,
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.GetMaxWorkshopCountForTierPostfix))));
             harmony.Patch(typeof(DefaultWorkshopModel).GetMethod("GetBuyingCostForPlayer", BindingFlags.Public | BindingFlags.Instance), null,
@@ -70,6 +72,9 @@ namespace WorkshopsAdvanced
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.CalculateHeroIncomeFromWorkshopsPrefix))));
             harmony.Patch(typeof(DefaultClanFinanceModel).GetMethod("CalculateHeroIncomeFromWorkshops", BindingFlags.NonPublic | BindingFlags.Instance), null,
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.CalculateHeroIncomeFromWorkshopsPostfix))));
+
+            harmony.Patch(typeof(ChangeOwnerOfWorkshopAction).GetMethod("ApplyByWarDeclaration", BindingFlags.Public | BindingFlags.Static),
+                new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.ApplyByWarDeclarationPrefix))));
 
 #if DEBUG
             harmony.Patch(typeof(DefaultDisguiseDetectionModel).GetMethod("CalculateDisguiseDetectionProbability", BindingFlags.Public | BindingFlags.Instance), null,
@@ -126,6 +131,67 @@ namespace WorkshopsAdvanced
             GiveGoldAction.ApplyBetweenCharacters(null, Hero.MainHero, 100000, true);
             return "done";
         }
+
+        [CommandLineFunctionality.CommandLineArgumentFunction("declare_war", "workshopsadvanced")]
+        public static string DeclareWar(List<string> strings)
+        {
+            if (strings.Count == 0)
+            {
+                return "A target is needed";
+            }
+
+            var name = string.Join(" ", strings).ToLower();
+
+            foreach (Kingdom kingdom in Kingdom.All)
+            {
+                if (Hero.MainHero.MapFaction == kingdom)
+                {
+                    continue;
+                }
+
+                if (name == kingdom.Name.ToString().ToLower())
+                {
+                    DeclareWarAction.Apply(kingdom, Hero.MainHero.MapFaction);
+                    return "done";
+                }
+            }
+
+            return "Couldn't find kingdom";
+        }
+
+        [CommandLineFunctionality.CommandLineArgumentFunction("declare_peace", "workshopsadvanced")]
+        public static string DeclarePeace(List<string> strings)
+        {
+            if (strings.Count == 0)
+            {
+                return "A target is needed";
+            }
+
+            var name = string.Join(" ", strings).ToLower();
+
+            foreach (Kingdom kingdom in Kingdom.All)
+            {
+                if (Hero.MainHero.MapFaction == kingdom)
+                {
+                    continue;
+                }
+
+                if (name == kingdom.Name.ToString().ToLower())
+                {
+                    if (kingdom.IsAtWarWith(Hero.MainHero.MapFaction))
+                    {
+                        MakePeaceAction.Apply(kingdom, Hero.MainHero.MapFaction, 0);
+                        return "done";
+                    }
+                    else
+                    {
+                        return "Not at war with the kingdom";
+                    }
+                }
+            }
+
+            return "Couldn't find kingdom";
+        }
     }
 #endif
 
@@ -137,6 +203,11 @@ namespace WorkshopsAdvanced
         public static void ExpensePostfix(Workshop __instance, ref int __result)
         {
             __result = MathF.Round(__result * Helper.GetWorkshopWageMultiplier(__instance));
+        }
+
+        public static void IsRunningPostfix(Workshop __instance, ref bool __result)
+        {
+            __result = __result && Helper.GetIsWorkshopRunning(__instance);
         }
 
         public static void GetMaxWorkshopCountForTierPostfix(ref int __result, int tier)
@@ -363,6 +434,12 @@ namespace WorkshopsAdvanced
                 hero.HeroDeveloper.AddSkillXp(DefaultSkills.Trade, change);
             }
         }
+
+        public static bool ApplyByWarDeclarationPrefix(Workshop workshop)
+        {
+            var preventLose = MySettings.Instance?.PreventWarLose ?? false;
+            return !preventLose || workshop.Owner != Hero.MainHero;
+        }
     }
 
     public static class Helper
@@ -384,6 +461,17 @@ namespace WorkshopsAdvanced
             }
 
             return multiplier;
+        }
+
+        public static bool GetIsWorkshopRunning(Workshop workshop)
+        {
+            var preventLose = MySettings.Instance?.PreventWarLose ?? false;
+            if (!preventLose || workshop.Owner != Hero.MainHero)
+            {
+                return true;
+            }
+
+            return !workshop.Settlement.MapFaction.IsAtWarWith(workshop.Owner.MapFaction);
         }
 
         public static int GetExtraWorkshopCountForTier(int tier)
@@ -800,6 +888,8 @@ namespace WorkshopsAdvanced
         private const string StrProfitTradeXPMultDesc = "{=E66DA0670B}Multiplier for Trade skill XP gained per daily profit from workshops.";
         private const string StrWorkshopMinCapital = "{=364475D5BF}Min Capital To Support Workshop";
         private const string StrWorkshopMinCapitalDesc = "{=2AFDF66BC5}Workshop is supplied money from player when capital is under this value to prevent bankruptcy.";
+        private const string StrPreventWarLose = "{=C99B931D10}Prevent Losing At War";
+        private const string StrPreventWarLoseDesc = "{=FD66009D89}Prevents player losing the workshop if war is declared. The workshop will stop working instead";
 
         private const string StrWarehouseGroupName = "{=6416E8CB5F}Warehouse";
         private const string StrWarehouseMinRent = "{=992858B61F}Minimum Warehouse Rent";
@@ -875,6 +965,10 @@ namespace WorkshopsAdvanced
         [SettingProperty(StrWorkshopMinCapital, 0, 20000, RequireRestart = false, HintText = StrWorkshopMinCapitalDesc, Order = 8)]
         [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
         public int WorkshopMinCapital { get; set; } = 3000;
+
+        [SettingProperty(StrPreventWarLose, RequireRestart = false, HintText = StrPreventWarLoseDesc, Order = 9)]
+        [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
+        public bool PreventWarLose { get; set; } = false;
         #endregion
 
         #region Warehouse
