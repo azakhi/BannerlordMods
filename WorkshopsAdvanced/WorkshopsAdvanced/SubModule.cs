@@ -52,8 +52,8 @@ namespace WorkshopsAdvanced
 
             harmony.Patch(typeof(WorkshopsCampaignBehavior).GetMethod("RunTownWorkshop", BindingFlags.NonPublic | BindingFlags.Instance),
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.RunTownWorkshopPrefix))));
-            harmony.Patch(typeof(WorkshopsCampaignBehavior).GetMethod("DoProduction", BindingFlags.NonPublic | BindingFlags.Instance),
-                new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.DoProductionPrefix))));
+            //harmony.Patch(typeof(WorkshopsCampaignBehavior).GetMethod("DoProduction", BindingFlags.NonPublic | BindingFlags.Instance),
+            //    new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.DoProductionPrefix))));
             harmony.Patch(typeof(WorkshopsCampaignBehavior).GetMethod("DetermineTownHasSufficientInputs", BindingFlags.NonPublic | BindingFlags.Static), null,
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.DetermineTownHasSufficientInputsPostfix))));
             harmony.Patch(typeof(WorkshopsCampaignBehavior).GetMethod("ProduceOutput", BindingFlags.NonPublic | BindingFlags.Static),
@@ -465,8 +465,19 @@ namespace WorkshopsAdvanced
 
         public static bool GetIsWorkshopRunning(Workshop workshop)
         {
+            if (!workshop.Owner.IsHumanPlayerCharacter)
+            {
+                return true;
+            }
+
+            var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetWorkshopCustomizationData(workshop);
+            if (!customizationData.IsWorking)
+            {
+                return false;
+            }
+
             var preventLose = MySettings.Instance?.PreventWarLose ?? false;
-            if (!preventLose || workshop.Owner != Hero.MainHero)
+            if (!preventLose)
             {
                 return true;
             }
