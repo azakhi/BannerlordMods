@@ -38,6 +38,10 @@ namespace WorkshopsAdvanced
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.ExpensePostfix))));
             harmony.Patch(typeof(DefaultWorkshopModel).GetMethod("GetMaxWorkshopCountForTier", BindingFlags.Public | BindingFlags.Instance), null,
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.GetMaxWorkshopCountForTierPostfix))));
+            harmony.Patch(typeof(DefaultWorkshopModel).GetMethod("GetBuyingCostForPlayer", BindingFlags.Public | BindingFlags.Instance), null,
+                new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.GetBuyingCostForPlayerPostfix))));
+            harmony.Patch(typeof(DefaultWorkshopModel).GetMethod("GetSellingCost", BindingFlags.Public | BindingFlags.Instance), null,
+                new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.GetSellingCostPostfix))));
             harmony.Patch(typeof(Production).GetMethod("get_ConversionSpeed", BindingFlags.Public | BindingFlags.Instance), null,
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.ConversionSpeedPostfix))));
 
@@ -138,6 +142,19 @@ namespace WorkshopsAdvanced
         public static void GetMaxWorkshopCountForTierPostfix(ref int __result, int tier)
         {
             __result += Helper.GetExtraWorkshopCountForTier(tier);
+        }
+
+        public static void GetBuyingCostForPlayerPostfix(ref int __result, Workshop workshop)
+        {
+            __result = Helper.GetWorkshopBuyingCost(__result);
+        }
+
+        public static void GetSellingCostPostfix(ref int __result, Workshop workshop)
+        {
+            if (workshop?.Owner == Hero.MainHero)
+            {
+                __result = Helper.GetWorkshopBuyingCost(__result);
+            }
         }
 
         public static void ConversionSpeedPostfix(ref float __result)
@@ -375,6 +392,17 @@ namespace WorkshopsAdvanced
             var extraCountPerTier = MySettings.Instance?.ExtraCountPerTier ?? 0;
 
             return extraStartingCount + (extraCountPerTier * tier);
+        }
+
+        public static int GetWorkshopBuyingCost(int originalCost)
+        {
+            var multiplier = MySettings.Instance?.PriceMultiplier ?? 1f;
+            if (multiplier != 1f)
+            {
+                return MathF.Round(originalCost * multiplier);
+            }
+
+            return originalCost;
         }
 
         public static float GetConversionSpeedMultiplier(Workshop workshop)
@@ -764,6 +792,8 @@ namespace WorkshopsAdvanced
         private const string StrProductionMultiplierDesc = "{=AE6E81AE28}Production speed multiplier for workshops. Use this if you want to adjust profitability.";
         private const string StrWageMultiplier = "{=E444B78BDF}Wage Multiplier";
         private const string StrWageMultiplierDesc = "{=BF94C60D4B}Wage multiplier for all workforce levels and base value. Use this if you want to adjust profitability.";
+        private const string StrPriceMultiplier = "{=2056F4F0DA}Workshop Price Multiplier";
+        private const string StrPriceMultiplierDesc = "{=505F34D1FB}Price multiplier for workshops for player.";
         private const string StrNonTradeIgnore = "{=9456B57ACA}Ignore Non-trade Goods";
         private const string StrNonTradeIgnoreDesc = "{=E0C53CB714}Ignores non-trade when not selling to market. Recommended for a balanced game.";
         private const string StrProfitTradeXPMult = "{=346A22CEB9}Profit Trade XP Multiplier";
@@ -830,15 +860,19 @@ namespace WorkshopsAdvanced
         [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
         public float WageMultiplier { get; set; } = 1f;
 
-        [SettingProperty(StrNonTradeIgnore, RequireRestart = false, HintText = StrNonTradeIgnoreDesc, Order = 5)]
+        [SettingProperty(StrPriceMultiplier, 0f, 10f, RequireRestart = false, HintText = StrPriceMultiplierDesc, Order = 5)]
+        [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
+        public float PriceMultiplier { get; set; } = 1f;
+
+        [SettingProperty(StrNonTradeIgnore, RequireRestart = false, HintText = StrNonTradeIgnoreDesc, Order = 6)]
         [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
         public bool NonTradeIgnore { get; set; } = true;
 
-        [SettingProperty(StrProfitTradeXPMult, 0f, 100f, RequireRestart = false, HintText = StrProfitTradeXPMultDesc, Order = 6)]
+        [SettingProperty(StrProfitTradeXPMult, 0f, 100f, RequireRestart = false, HintText = StrProfitTradeXPMultDesc, Order = 7)]
         [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
         public float ProfitTradeXPMult { get; set; } = 0f;
 
-        [SettingProperty(StrWorkshopMinCapital, 0, 20000, RequireRestart = false, HintText = StrWorkshopMinCapitalDesc, Order = 7)]
+        [SettingProperty(StrWorkshopMinCapital, 0, 20000, RequireRestart = false, HintText = StrWorkshopMinCapitalDesc, Order = 8)]
         [SettingPropertyGroup(StrGlobalGroupName, GroupOrder = 1)]
         public int WorkshopMinCapital { get; set; } = 3000;
         #endregion
