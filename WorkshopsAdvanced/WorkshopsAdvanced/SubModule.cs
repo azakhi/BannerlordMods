@@ -323,7 +323,7 @@ namespace WorkshopsAdvanced
             var workshopCustomizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetWorkshopCustomizationData(workshop);
             if (workshopCustomizationData.IsSellingToMarket)
             {
-                var isEnabled = MySettings.Instance?.SmartEnable ?? false;
+                var isEnabled = false;// MySettings.Instance?.SmartEnable ?? false;
                 if (isEnabled)
                 {
                     Helper.CheckAndSellWarehouseItem(workshop, outputItem, count);
@@ -604,7 +604,7 @@ namespace WorkshopsAdvanced
             }
 
             var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetSettlementCustomizationData(workshop.Settlement);
-            var extraSellCount = MySettings.Instance?.SmartExtraSell ?? 0;
+            var extraSellCount = 0;// MySettings.Instance?.SmartExtraSell ?? 0;
             var available = customizationData.Warehouse.GetItemNumber(item);
             var toSellCount = MathF.Min(available, amount + extraSellCount);
             if (toSellCount > 0)
@@ -631,7 +631,7 @@ namespace WorkshopsAdvanced
                 }
 
                 var item = customizationData.Warehouse.GetItemAtIndex(itemIndex);
-                var sellCount = MySettings.Instance?.SmartSellOnChange ?? 0;
+                var sellCount = 0;// MySettings.Instance?.SmartSellOnChange ?? 0;
                 var available = customizationData.Warehouse.GetItemNumber(item);
                 var toSellCount = MathF.Min(available, sellCount);
                 if (toSellCount > 0)
@@ -780,7 +780,7 @@ namespace WorkshopsAdvanced
                 return false;
             }
 
-            var isEnabled = MySettings.Instance?.SmartEnable ?? false;
+            var isEnabled = false; //MySettings.Instance?.SmartEnable ?? false;
             if (!isEnabled)
             {
                 return false;
@@ -788,21 +788,21 @@ namespace WorkshopsAdvanced
 
             var pricePercentage = averagePrice > 0.01f ? itemPrice / averagePrice : float.MaxValue;
 
-            var minSellPercentage = (MySettings.Instance?.SmartMinSell ?? 0) / 100f;
+            var minSellPercentage = 0f;// (MySettings.Instance?.SmartMinSell ?? 0) / 100f;
             if (pricePercentage < minSellPercentage)
             {
                 return false;
             }
 
-            var maxSellPercentage = (MySettings.Instance?.SmartMaxSell ?? 0) / 100f;
+            var maxSellPercentage = 0f;// (MySettings.Instance?.SmartMaxSell ?? 0) / 100f;
             maxSellPercentage = MathF.Max(maxSellPercentage, minSellPercentage);
             if (pricePercentage >= maxSellPercentage)
             {
                 return true;
             }
 
-            var minOutputStock = (MySettings.Instance?.SmartMinOutput ?? 0) / itemPrice;
-            var maxOutputStock = (MySettings.Instance?.SmartMaxOutput ?? 0) / itemPrice;
+            var minOutputStock = 0;// (MySettings.Instance?.SmartMinOutput ?? 0) / itemPrice;
+            var maxOutputStock = 0;// (MySettings.Instance?.SmartMaxOutput ?? 0) / itemPrice;
 
             var desiredPercentage = stock >= maxOutputStock ? minSellPercentage : maxSellPercentage;
             if (maxOutputStock > minOutputStock && stock > minOutputStock && stock < maxOutputStock && maxSellPercentage > minSellPercentage)
@@ -820,7 +820,7 @@ namespace WorkshopsAdvanced
 
         public static void CheckAndBuyInput(ItemCategory productionInput, Workshop workshop, bool doNotEffectCapital = false)
         {
-            var isEnabled = MySettings.Instance?.SmartEnable ?? false;
+            var isEnabled = false; //MySettings.Instance?.SmartEnable ?? false;
             if (!isEnabled)
             {
                 return;
@@ -839,8 +839,8 @@ namespace WorkshopsAdvanced
             }
 
             var townRoster = workshop.Settlement.Town.Owner.ItemRoster;
-            var targetStock = MySettings.Instance?.SmartStock ?? 0;
-            var extraBuyCount = MySettings.Instance?.SmartExtraBuy ?? 0;
+            var targetStock = 0;// MySettings.Instance?.SmartStock ?? 0;
+            var extraBuyCount = 0;// MySettings.Instance?.SmartExtraBuy ?? 0;
             var inputIndex = customizationData.Warehouse.FindIndex((ItemObject x) => x.ItemCategory == productionInput);
             var currentStock = inputIndex >= 0 ? customizationData.Warehouse.GetElementNumber(inputIndex) : 0;
             var townItemIndex = townRoster.FindIndex((ItemObject x) => x.ItemCategory == productionInput);
@@ -1033,41 +1033,41 @@ namespace WorkshopsAdvanced
         #endregion
 
         #region Smart Workshops
-        [SettingProperty(StrSmartEnable, RequireRestart = false, Order = 1)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public bool SmartEnable { get; set; } = false;
+        //[SettingProperty(StrSmartEnable, RequireRestart = false, Order = 1)]
+        //[SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
+        //public bool SmartEnable { get; set; } = false;
 
-        [SettingProperty(StrSmartExtraBuy, 0, 100, RequireRestart = false, HintText = StrSmartExtraBuyDesc, Order = 2)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartExtraBuy { get; set; } = 2;
+        //[SettingProperty(StrSmartExtraBuy, 0, 100, RequireRestart = false, HintText = StrSmartExtraBuyDesc, Order = 2)]
+        //[SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
+        //public int SmartExtraBuy { get; set; } = 2;
 
-        [SettingProperty(StrSmartStock, 0, 1000, RequireRestart = false, HintText = StrSmartStockDesc, Order = 3)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartStock { get; set; } = 10;
+        //[SettingProperty(StrSmartStock, 0, 1000, RequireRestart = false, HintText = StrSmartStockDesc, Order = 3)]
+        //[SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
+        //public int SmartStock { get; set; } = 10;
 
-        [SettingProperty(StrSmartExtraSell, 0, 100, RequireRestart = false, HintText = StrSmartExtraSellDesc, Order = 4)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartExtraSell { get; set; } = 1;
+        //[SettingProperty(StrSmartExtraSell, 0, 100, RequireRestart = false, HintText = StrSmartExtraSellDesc, Order = 4)]
+        //[SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
+        //public int SmartExtraSell { get; set; } = 1;
 
-        [SettingProperty(StrSmartSellOnChange, 0, 100, RequireRestart = false, HintText = StrSmartSellOnChangeDesc, Order = 5)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartSellOnChange { get; set; } = 1;
+        //[SettingProperty(StrSmartSellOnChange, 0, 100, RequireRestart = false, HintText = StrSmartSellOnChangeDesc, Order = 5)]
+        //[SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
+        //public int SmartSellOnChange { get; set; } = 1;
 
-        [SettingProperty(StrSmartMinOutput, 0, 30000, RequireRestart = false, HintText = StrSmartMinOutputDesc, Order = 6)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartMinOutput { get; set; } = 0;
+        //[SettingProperty(StrSmartMinOutput, 0, 30000, RequireRestart = false, HintText = StrSmartMinOutputDesc, Order = 6)]
+        //[SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
+        //public int SmartMinOutput { get; set; } = 0;
 
-        [SettingProperty(StrSmartMaxOutput, 0, 30000, RequireRestart = false, HintText = StrSmartMaxOutputDesc, Order = 7)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartMaxOutput { get; set; } = 3000;
+        //[SettingProperty(StrSmartMaxOutput, 0, 30000, RequireRestart = false, HintText = StrSmartMaxOutputDesc, Order = 7)]
+        //[SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
+        //public int SmartMaxOutput { get; set; } = 3000;
 
-        [SettingProperty(StrSmartMinSell, 0, 200, RequireRestart = false, HintText = StrSmartMinSellDesc, Order = 8)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartMinSell { get; set; } = 80;
+        //[SettingProperty(StrSmartMinSell, 0, 200, RequireRestart = false, HintText = StrSmartMinSellDesc, Order = 8)]
+        //[SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
+        //public int SmartMinSell { get; set; } = 80;
 
-        [SettingProperty(StrSmartMaxSell, 0, 200, RequireRestart = false, HintText = StrSmartMaxSellDesc, Order = 9)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartMaxSell { get; set; } = 120;
+        //[SettingProperty(StrSmartMaxSell, 0, 200, RequireRestart = false, HintText = StrSmartMaxSellDesc, Order = 9)]
+        //[SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
+        //public int SmartMaxSell { get; set; } = 120;
         #endregion
     }
 
