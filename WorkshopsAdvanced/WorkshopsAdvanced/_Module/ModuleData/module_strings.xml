@@ -28,4 +28,20 @@
   <string id="WA_Adjust_Selected" text="{=5B4E78BC80}Already selected." />
   <string id="WA_Inquiry_Stop_Renting" text="{=E77E70DE13}Stop Renting Warehouse" />
   <string id="WA_Inquiry_Stop_Renting_Desc" text="{=D2E0798F9A}If you stop renting warehouse, every item in it will be sold to town. Are you sure?" />
+  <string id="WA_Up_Name" text="{=240F9686EF}Upgrades" />
+  <string id="WA_Up_Desc" text="{=6E0AD7BDF8}You can upgrade your workshop in various ways to increase profit. Currently you have: {UPGRADES}" />
+  <string id="WA_Up_Buy" text="{=D945F48F1C}Buy Upgrade" />
+  <string id="WA_Up_Buy_Desc" text="{=1CFB3F9EC1}Buying this upgrade will cost {UP_COST}. Are you sure?" />
+  <string id="WA_Up_Buy_No_Money" text="{=D1FE7D140B}You do not have enough gold to pay upgrade cost ({UP_COST})." />
+  <string id="WA_Up_Remove" text="{=140E2B8821}Remove Upgrade" />
+  <string id="WA_Up_Remove_Desc" text="{=B315B507E3}Upgrade will be removed from workshop. Are you sure?" />
+  <string id="WA_Up_None" text="{=BF5B8C3C3F}No upgrades" />
+  <string id="WA_Up_Extension" text="{=C869537D17}Workshop Extension" />
+  <string id="WA_Up_Extension_Desc" text="{=024B8CA99E}Add a building extension to your workshop. This will cost {UP_COST}. Extension will let your workers be more efficient, resulting in higher production speed ({UPGRADE_VALUE}%). Be aware though higher production will cause higher consumption of materials and providing more products to the market. This will likely affect prices." />
+  <string id="WA_Up_Tools" text="{=7CFDA63E05}Extra Tools" />
+  <string id="WA_Up_Tools_Desc" text="{=AB17A0D1E1}Buy extra tools for your workers. This will cost {UP_COST}. Extra tools will improve production process, resulting in higher amount of product from same amount of materials ({UPGRADE_VALUE}%). Note that if the bonus is not a whole number, it will be saved until it can be used to produce an extra product." />
+  <string id="WA_Up_Stall" text="{=51A76BC315}Market Stall" />
+  <string id="WA_Up_Stall_Desc" text="{=E46084C797}Buy a market stall for your products. This will cost {UP_COST}. Market stall will give you a chance ({UPGRADE_VALUE}%) to sell your products directly to townsfolk instead of town market. Selling directly to townsfolk will decrease supply and help with keeping prices higher. Note that the chance of selling to townsfolk is calculated separately for every product." />
+  <string id="WA_Up_Furniture" text="{=BB3A8B2E39}Furniture" />
+  <string id="WA_Up_Furniture_Desc" text="{=04FD0F131A}Provide better furniture for your workers. This will cost {UP_COST}. Providing better furniture will increase happiness of your workers, resulting in lower wages ({UPGRADE_VALUE}%)." />
 </strings>

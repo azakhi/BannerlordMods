@@ -28,6 +28,22 @@
     <string id="6A061313D2" text="Max" />
     <string id="5B4E78BC80" text="Already selected." />
     <string id="D2E0798F9A" text="If you stop renting warehouse, every item in it will be sold to town. Are you sure?" />
+    <string id="240F9686EF" text="Upgrades" />
+    <string id="6E0AD7BDF8" text="You can upgrade your workshop in various ways to increase profit. Currently you have: {UPGRADES}" />
+    <string id="D945F48F1C" text="Buy Upgrade" />
+    <string id="1CFB3F9EC1" text="Buying this upgrade will cost {UP_COST}. Are you sure?" />
+    <string id="D1FE7D140B" text="You do not have enough gold to pay upgrade cost ({UP_COST})." />
+    <string id="140E2B8821" text="Remove Upgrade" />
+    <string id="B315B507E3" text="Upgrade will be removed from workshop. Are you sure?" />
+    <string id="BF5B8C3C3F" text="No upgrades" />
+    <string id="C869537D17" text="Workshop Extension" />
+    <string id="024B8CA99E" text="Add a building extension to your workshop. This will cost {UP_COST}. Extension will let your workers be more efficient, resulting in higher production speed ({UPGRADE_VALUE}%). Be aware though higher production will cause higher consumption of materials and providing more products to the market. This will likely affect prices." />
+    <string id="7CFDA63E05" text="Extra Tools" />
+    <string id="AB17A0D1E1" text="Buy extra tools for your workers. This will cost {UP_COST}. Extra tools will improve production process, resulting in higher amount of product from same amount of materials ({UPGRADE_VALUE}%). Note that if the bonus is not a whole number, it will be saved until it can be used to produce an extra product." />
+    <string id="51A76BC315" text="Market Stall" />
+    <string id="E46084C797" text="Buy a market stall for your products. This will cost {UP_COST}. Market stall will give you a chance ({UPGRADE_VALUE}%) to sell your products directly to townsfolk instead of town market. Selling directly to townsfolk will decrease supply and help with keeping prices higher. Note that the chance of selling to townsfolk is calculated separately for every product." />
+    <string id="BB3A8B2E39" text="Furniture" />
+    <string id="04FD0F131A" text="Provide better furniture for your workers. This will cost {UP_COST}. Providing better furniture will increase happiness of your workers, resulting in lower wages ({UPGRADE_VALUE}%)." />
     <string id="3603CC01E5" text="Global Customizations" />
     <string id="AFB8C07111" text="Extra Starting Workshop Count" />
     <string id="330973B628" text="Additional workshop count at the start of the game. Added to the base value." />

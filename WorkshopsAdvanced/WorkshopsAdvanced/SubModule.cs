@@ -65,8 +65,6 @@ namespace WorkshopsAdvanced
 
             harmony.Patch(typeof(CaravansCampaignBehavior).GetMethod("OnSettlementEntered", BindingFlags.Public | BindingFlags.Instance),
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.OnSettlementEnteredPrefix))));
-            harmony.Patch(typeof(SellItemsAction).GetMethod("Apply", BindingFlags.Public | BindingFlags.Static), null,
-                new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.ApplyPostfix))));
 
             harmony.Patch(typeof(DefaultClanFinanceModel).GetMethod("CalculateHeroIncomeFromWorkshops", BindingFlags.NonPublic | BindingFlags.Instance),
                 new HarmonyMethod(typeof(WorkshopBehaviourPatch).GetMethod(nameof(WorkshopBehaviourPatch.CalculateHeroIncomeFromWorkshopsPrefix))));
@@ -299,42 +297,48 @@ namespace WorkshopsAdvanced
             __result = Helper.DetermineWarehouseHasSufficientInputs(production, town, settlementCustomizationData.Warehouse, out inputMaterialCost);
         }
 
-        public static bool ProduceOutputPrefix(ItemObject outputItem, Town town, Workshop workshop, int count, bool doNotEffectCapital)
+        public static bool ProduceOutputPrefix(EquipmentElement outputItem, Town town, Workshop workshop, ref int count, bool doNotEffectCapital)
         {
             if (!workshop.Owner.IsHumanPlayerCharacter)
             {
                 return true;
             }
 
-            var ignoreNonTrade = MySettings.Instance?.NonTradeIgnore ?? true;
-            if (ignoreNonTrade && !outputItem.IsTradeGood)
+            var extraProduct = Helper.CheckAndGetWorkshopExtraProduct(workshop, count);
+            count += extraProduct;
+
+            var settlementCustomizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetSettlementCustomizationData(workshop.Settlement);
+            var workshopCustomizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetWorkshopCustomizationData(workshop);
+            if (!settlementCustomizationData.IsRentingWarehouse || workshopCustomizationData.IsSellingToMarket)
             {
+                var directSellCount = Helper.GetWorkshopDirectSellCount(workshop, count);
+                if (directSellCount > 0)
+                {
+                    var price = town.GetItemPrice(outputItem, null, false);
+                    if (Campaign.Current.GameStarted && !doNotEffectCapital && price < 1000)
+                    {
+                        workshop.ChangeGold(directSellCount * price);
+                        count -= directSellCount;
+                    }
+                }
+
+                if (count <= 0)
+                {
+                    CampaignEventDispatcher.Instance.OnItemProduced(outputItem.Item, town.Owner.Settlement, directSellCount);
+                    return false;
+                }
+
                 return true;
             }
 
-            var settlementCustomizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetSettlementCustomizationData(workshop.Settlement);
-            if (!settlementCustomizationData.IsRentingWarehouse)
+            var ignoreNonTrade = MySettings.Instance?.NonTradeIgnore ?? true;
+            if (ignoreNonTrade && !outputItem.Item.IsTradeGood)
             {
                 return true;
             }
 
             settlementCustomizationData.Warehouse.AddToCounts(outputItem, count);
-
-            var workshopCustomizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetWorkshopCustomizationData(workshop);
-            if (workshopCustomizationData.IsSellingToMarket)
-            {
-                var isEnabled = MySettings.Instance?.SmartEnable ?? false;
-                if (isEnabled)
-                {
-                    Helper.CheckAndSellWarehouseItem(workshop, outputItem, count);
-                }
-                else
-                {
-                    Helper.SellFromWarehouseToTown(settlementCustomizationData.Warehouse, workshop, outputItem, count, doNotEffectCapital);
-                }
-            }
-
-            CampaignEventDispatcher.Instance.OnItemProduced(outputItem, town.Owner.Settlement, count);
+            CampaignEventDispatcher.Instance.OnItemProduced(outputItem.Item, town.Owner.Settlement, count);
             return false;
         }
 
@@ -351,7 +355,6 @@ namespace WorkshopsAdvanced
                 return true;
             }
 
-            Helper.CheckAndBuyInput(productionInput, workshop, doNotEffectCapital);
             var inputIndex = customizationData.Warehouse.FindIndex((ItemObject x) => x.ItemCategory == productionInput);
             if (inputIndex < 0)
             {
@@ -394,24 +397,7 @@ namespace WorkshopsAdvanced
                 Helper.CheckAndSellFromWarehouseToCaravan(settlement, mobileParty);
             }
 
-            Helper.CheckAndSellWorkshopOutputs(settlement, null);
             return true;
-        }
-
-        public static void ApplyPostfix(PartyBase receiverParty, PartyBase payerParty, ItemRosterElement subject, int number, Settlement currentSettlement = null)
-        {
-            if (subject.EquipmentElement.Item == null || receiverParty == null || !receiverParty.IsSettlement)
-            {
-                return;
-            }
-
-            var ignoreNonTrade = MySettings.Instance?.NonTradeIgnore ?? true;
-            if (ignoreNonTrade && !subject.EquipmentElement.Item.IsTradeGood)
-            {
-                return;
-            }
-
-            Helper.CheckAndSellWorkshopOutputs(receiverParty.Settlement, subject.EquipmentElement.Item.ItemCategory);
         }
 
         public static bool CalculateHeroIncomeFromWorkshopsPrefix(Hero hero, ref ExplainedNumber goldChange, bool applyWithdrawals)
@@ -442,8 +428,33 @@ namespace WorkshopsAdvanced
         }
     }
 
+    [Flags]
+    public enum WorkshopUpgrades
+    {
+        None = 0,
+        Extension = 1,
+        Tools = 2,
+        Stall = 4,
+        Furniture = 8,
+    }
+
     public static class Helper
     {
+        public class UpgradeInfo
+        {
+            public float Value { get; set; }
+            public float Percentage => Value * 100f;
+            public int Cost { get; set; }
+        }
+
+        public static Dictionary<WorkshopUpgrades, UpgradeInfo> UpgradesInfo = new Dictionary<WorkshopUpgrades, UpgradeInfo>()
+        {
+            { WorkshopUpgrades.Extension, new UpgradeInfo() { Value = 0.2f, Cost = 5000 } },
+            { WorkshopUpgrades.Tools, new UpgradeInfo() { Value = 0.2f, Cost = 8000 } },
+            { WorkshopUpgrades.Stall, new UpgradeInfo() { Value = 0.4f, Cost = 4000 } },
+            { WorkshopUpgrades.Furniture, new UpgradeInfo() { Value = -0.4f, Cost = 3500 } },
+        };
+
         public static float GetWorkshopWageMultiplier(Workshop workshop)
         {
             var multiplier = MySettings.Instance?.WageMultiplier ?? 1f;
@@ -454,6 +465,11 @@ namespace WorkshopsAdvanced
                 var maxWage = MySettings.Instance?.WorkforceMaxWage ?? 3f;
 
                 var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetWorkshopCustomizationData(workshop);
+                if (customizationData.HasUpgrade(WorkshopUpgrades.Furniture))
+                {
+                    multiplier *= 1f + UpgradesInfo[WorkshopUpgrades.Furniture].Value;
+                }
+
                 var level = customizationData.WorkforceLevel;
                 if (level < 0) return lowWage * multiplier;
                 if (level == 1) return highWage * multiplier;
@@ -514,6 +530,11 @@ namespace WorkshopsAdvanced
                 var maxEfficiency = MySettings.Instance?.WorkforceMaxEfficinecy ?? 1.8f;
 
                 var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetWorkshopCustomizationData(workshop);
+                if (customizationData.HasUpgrade(WorkshopUpgrades.Extension))
+                {
+                    productionMultiplier *= 1f + UpgradesInfo[WorkshopUpgrades.Extension].Value;
+                }
+
                 var level = customizationData.WorkforceLevel;
                 if (level < 0) return lowEfficiency * productionMultiplier;
                 if (level == 1) return highEfficiency * productionMultiplier;
@@ -592,65 +613,6 @@ namespace WorkshopsAdvanced
             foreach (var rosterElement in customizationData.Warehouse)
             {
                 SellItemsAction.Apply(PartyBase.MainParty, settlement.Party, rosterElement, rosterElement.Amount, settlement);
-            }
-        }
-
-        public static void CheckAndSellWarehouseItem(Workshop workshop, ItemObject item, int amount)
-        {
-            var isPriceGood = IsPriceGood(workshop.Settlement, item);
-            if (!isPriceGood)
-            {
-                return;
-            }
-
-            var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetSettlementCustomizationData(workshop.Settlement);
-            var extraSellCount = MySettings.Instance?.SmartExtraSell ?? 0;
-            var available = customizationData.Warehouse.GetItemNumber(item);
-            var toSellCount = MathF.Min(available, amount + extraSellCount);
-            if (toSellCount > 0)
-            {
-                SellFromWarehouseToTown(customizationData.Warehouse, workshop, item, toSellCount);
-            }
-        }
-
-        public static void CheckAndSellWorkshopOutputs(Settlement settlement, ItemCategory? itemCategory)
-        {
-            var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetSettlementCustomizationData(settlement);
-            if (!customizationData.IsRentingWarehouse)
-            {
-                return;
-            }
-
-            var itemIndex = GetSellableOutputIndexFromWarehouse(settlement, itemCategory, false, out var workshopIndex);
-            if (itemIndex >= 0)
-            {
-                var isPriceGood = IsPriceGood(settlement, customizationData.Warehouse.GetItemAtIndex(itemIndex));
-                if (!isPriceGood)
-                {
-                    return;
-                }
-
-                var item = customizationData.Warehouse.GetItemAtIndex(itemIndex);
-                var sellCount = MySettings.Instance?.SmartSellOnChange ?? 0;
-                var available = customizationData.Warehouse.GetItemNumber(item);
-                var toSellCount = MathF.Min(available, sellCount);
-                if (toSellCount > 0)
-                {
-                    SellFromWarehouseToTown(customizationData.Warehouse, settlement.Town.Workshops[workshopIndex], item, toSellCount);
-                }
-            }
-        }
-
-        public static void SellFromWarehouseToTown(ItemRoster warehouse, Workshop workshop, ItemObject item, int amount, bool doNotEffectCapital = false)
-        {
-            var town = workshop.Settlement.Town;
-            town.Owner.ItemRoster.AddToCounts(item, amount);
-            warehouse.AddToCounts(item, -amount);
-            if (!doNotEffectCapital)
-            {
-                var totalCost = amount * town.GetItemPrice(item, null, false);
-                town.ChangeGold(-totalCost);
-                workshop.ChangeGold(totalCost);
             }
         }
 
@@ -747,124 +709,118 @@ namespace WorkshopsAdvanced
             return -1;
         }
 
-        public static bool IsPriceGood(Settlement settlement, ItemObject item)
+        public static int CheckAndGetWorkshopExtraProduct(Workshop workshop, int produced)
         {
-            if (!item.IsTradeGood)
+            if (!workshop.Owner.IsHumanPlayerCharacter)
             {
-                // Non-trade items should never be part of smart selling
-                var ignoreNonTrade = MySettings.Instance?.NonTradeIgnore ?? true;
-                return !ignoreNonTrade;
+                return 0;
             }
 
-            var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetSettlementCustomizationData(settlement);
-            if (customizationData.PriceDataDict == null)
+            var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetWorkshopCustomizationData(workshop);
+            if (!customizationData.HasUpgrade(WorkshopUpgrades.Tools))
             {
-                customizationData.PriceDataDict = new Dictionary<ItemObject, ItemPriceData>();
+                return 0;
             }
 
-            var itemPrice = settlement.Town.GetItemPrice(item, null, false);
-            if (!customizationData.PriceDataDict.TryGetValue(item, out var priceData))
-            {
-                priceData = new ItemPriceData();
-                customizationData.PriceDataDict.Add(item, priceData);
-            }
-
-            priceData.RegisterPrice(itemPrice);
-            var averagePrice = priceData.AveragePrice;
-
-            // Leave fail returns to after price calculation so price is tracked even when Smart Workshops isn't enabled
-
-            var stock = customizationData.Warehouse.GetItemNumber(item);
-            if (stock <= 0)
-            {
-                return false;
-            }
-
-            var isEnabled = MySettings.Instance?.SmartEnable ?? false;
-            if (!isEnabled)
-            {
-                return false;
-            }
-
-            var pricePercentage = averagePrice > 0.01f ? itemPrice / averagePrice : float.MaxValue;
-
-            var minSellPercentage = (MySettings.Instance?.SmartMinSell ?? 0) / 100f;
-            if (pricePercentage < minSellPercentage)
-            {
-                return false;
-            }
-
-            var maxSellPercentage = (MySettings.Instance?.SmartMaxSell ?? 0) / 100f;
-            maxSellPercentage = MathF.Max(maxSellPercentage, minSellPercentage);
-            if (pricePercentage >= maxSellPercentage)
-            {
-                return true;
-            }
-
-            var minOutputStock = (MySettings.Instance?.SmartMinOutput ?? 0) / itemPrice;
-            var maxOutputStock = (MySettings.Instance?.SmartMaxOutput ?? 0) / itemPrice;
-
-            var desiredPercentage = stock >= maxOutputStock ? minSellPercentage : maxSellPercentage;
-            if (maxOutputStock > minOutputStock && stock > minOutputStock && stock < maxOutputStock && maxSellPercentage > minSellPercentage)
-            {
-                var stockDiff = stock - minOutputStock;
-                var targetStockDiff = maxOutputStock - minOutputStock;
-                var percentageDiff = maxSellPercentage - minSellPercentage;
-                desiredPercentage = minSellPercentage + (percentageDiff * (1f - (stockDiff / (float)targetStockDiff)));
-            }
-
-            var result = pricePercentage >= desiredPercentage;
-            //DisplayWarning("Item: " + item.Name + ", Stock: " + stock +  ", Pr: " + itemPrice + ", Avg: " + averagePrice.ToString("0.00") + ", PP: " + pricePercentage.ToString("0.00") + ", DP: " + desiredPercentage.ToString("0.00") + ", Result: " + result);
-            return result;
+            var total = customizationData.LeftOverProduct + (produced * UpgradesInfo[WorkshopUpgrades.Tools].Value);
+            var extra = MathF.Floor(total);
+            customizationData.LeftOverProduct = total - extra;
+            return extra;
         }
 
-        public static void CheckAndBuyInput(ItemCategory productionInput, Workshop workshop, bool doNotEffectCapital = false)
+        public static int GetWorkshopDirectSellCount(Workshop workshop, int total)
         {
-            var isEnabled = MySettings.Instance?.SmartEnable ?? false;
-            if (!isEnabled)
+            if (!workshop.Owner.IsHumanPlayerCharacter)
+            {
+                return 0;
+            }
+
+            var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetWorkshopCustomizationData(workshop);
+            if (!customizationData.HasUpgrade(WorkshopUpgrades.Stall))
+            {
+                return 0;
+            }
+
+            var sold = 0;
+            var chance = UpgradesInfo[WorkshopUpgrades.Stall].Value;
+            for (var i = 0; i < total; i++)
+            {
+                if (MBRandom.RandomFloat <= chance)
+                {
+                    sold++;
+                }
+            }
+
+            return sold;
+        }
+
+        public static int GetWorkshopUpgradeCost(WorkshopUpgrades upgrade)
+        {
+            if (UpgradesInfo.TryGetValue(upgrade, out var upgradeInfo))
+            {
+                return upgradeInfo.Cost;
+            }
+
+            return 0;
+        }
+
+        public static float GetWorkshopUpgradePercentage(WorkshopUpgrades upgrade)
+        {
+            if (UpgradesInfo.TryGetValue(upgrade, out var upgradeInfo))
+            {
+                return upgradeInfo.Percentage;
+            }
+
+            return 0;
+        }
+
+        public static bool CanBuyWorkshopUpgrade(WorkshopUpgrades upgrade, out int cost)
+        {
+            cost = 0;
+            if (!UpgradesInfo.TryGetValue(upgrade, out var upgradeInfo))
+            {
+                return false;
+            }
+
+            cost = upgradeInfo.Cost;
+            return Hero.MainHero.Gold >= upgradeInfo.Cost;
+        }
+
+        public static void BuyWorkshopUpgrade(Workshop workshop, WorkshopUpgrades upgrade)
+        {
+            var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetWorkshopCustomizationData(workshop);
+            if (customizationData != null && !customizationData.HasUpgrade(upgrade) && CanBuyWorkshopUpgrade(upgrade, out var cost))
+            {
+                GiveGoldAction.ApplyBetweenCharacters(Hero.MainHero, null, cost, false);
+                customizationData.AddUpgrade(upgrade);
+            }
+        }
+
+        public static void RemoveWorkshopUpgrade(Workshop workshop, WorkshopUpgrades upgrade)
+        {
+            var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetWorkshopCustomizationData(workshop);
+            if (customizationData != null)
+            {
+                customizationData.RemoveUpgrade(upgrade);
+                if (upgrade == WorkshopUpgrades.Tools)
+                {
+                    customizationData.LeftOverProduct = 0f;
+                }
+            }
+        }
+
+        public static void OnWorkshopChanged(Workshop workshop, Hero owner, WorkshopType type)
+        {
+            if (workshop.Owner == owner || owner != Hero.MainHero)
             {
                 return;
             }
 
-            var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetSettlementCustomizationData(workshop.Settlement);
-            if (!customizationData.IsRentingWarehouse)
+            var customizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetWorkshopCustomizationData(workshop);
+            if (customizationData != null)
             {
-                return;
-            }
-
-            var workshopCustomizationData = WorkshopsAdvancedCampaignBehaviour.Instance.GetWorkshopCustomizationData(workshop);
-            if (!workshopCustomizationData.IsBuyingFromMarket)
-            {
-                return;
-            }
-
-            var townRoster = workshop.Settlement.Town.Owner.ItemRoster;
-            var targetStock = MySettings.Instance?.SmartStock ?? 0;
-            var extraBuyCount = MySettings.Instance?.SmartExtraBuy ?? 0;
-            var inputIndex = customizationData.Warehouse.FindIndex((ItemObject x) => x.ItemCategory == productionInput);
-            var currentStock = inputIndex >= 0 ? customizationData.Warehouse.GetElementNumber(inputIndex) : 0;
-            var townItemIndex = townRoster.FindIndex((ItemObject x) => x.ItemCategory == productionInput);
-            var available = townItemIndex >= 0 ? townRoster.GetElementNumber(townItemIndex) : 0;
-
-            if (currentStock >= targetStock || available <= 0)
-            {
-                return;
-            }
-
-            var toBuyCount = MathF.Min(available, extraBuyCount + 1);
-            var townItem = townRoster.GetItemAtIndex(townItemIndex);
-            var cost = toBuyCount * workshop.Settlement.Town.GetItemPrice(townItem, null, false);
-            if (toBuyCount <= 0 || (!doNotEffectCapital && cost > workshop.Capital))
-            {
-                return;
-            }
-
-            townRoster.AddToCounts(townItem, -toBuyCount);
-            customizationData.Warehouse.AddToCounts(townItem, toBuyCount);
-            if (!doNotEffectCapital)
-            {
-                workshop.ChangeGold(-cost);
-                workshop.Settlement.Town.ChangeGold(cost);
+                customizationData.RemoveAllUpgrades();
+                customizationData.LeftOverProduct = 0f;
             }
         }
 
@@ -923,25 +879,6 @@ namespace WorkshopsAdvanced
         private const string StrCaravanBudgetDesc = "{=396F65EBFA}Maximum caravan budget to be spent on buying workshop outputs when they enter the settlement.";
         private const string StrCaravanPrice = "{=B9A8A86817}Price Percentage";
         private const string StrCaravanPriceDesc = "{=5D2C722382}Percentage of price your caravans will need to pay to your workshops.";
-
-        private const string StrSmartGroupName = "{=3C2AF9B6A4}Smarter Workshops";
-        private const string StrSmartEnable = "{=2FAEC1F9F8}Enable";
-        private const string StrSmartExtraBuy = "{=29E5A9662A}Extra Buy Count";
-        private const string StrSmartExtraBuyDesc = "{=E62420EEF2}Additional amount to be bought from market when input stock is under threshold. Requires warehouse.";
-        private const string StrSmartStock = "{=AC40DFFE06}Input Stock";
-        private const string StrSmartStockDesc = "{=85E74592E6}Input stock threshold to determine when to buy extra from market.";
-        private const string StrSmartExtraSell = "{=47A1730D7A}Extra Amount To Be Sold";
-        private const string StrSmartExtraSellDesc = "{=173731E643}Additional amount to be sold from warehouse when price is determined to be good. Requires warehouse.";
-        private const string StrSmartSellOnChange = "{=6DEB69A97B}Amount To Be Sold On Market Change";
-        private const string StrSmartSellOnChangeDesc = "{=830726AFA0}Amount to be sold when market change is detected and price is determined to be good. Requires warehouse.";
-        private const string StrSmartMinOutput = "{=B2287541DA}Minimum Output Stock Value";
-        private const string StrSmartMinOutputDesc = "{=5FC883241C}Target minimum output stock value where selling price percentage starts dropping.";
-        private const string StrSmartMaxOutput = "{=1FC94A95BC}Maximum Output Stock Value";
-        private const string StrSmartMaxOutputDesc = "{=617C7BD764}Target maximum output stock value where selling price percentage is the minimum given.";
-        private const string StrSmartMinSell = "{=777756BD1A}Min Required Price Percentage";
-        private const string StrSmartMinSellDesc = "{=35643AEAC6}Output items will not be sold at any price percentage under this regardless of stock.";
-        private const string StrSmartMaxSell = "{=8F7FEBFA78}Max Required Price Percentage";
-        private const string StrSmartMaxSellDesc = "{=0B1CED6ABB}Output items will be sold at any price percentage above this regardless of stock.";
         #endregion
 
         #region Global
@@ -1031,44 +968,6 @@ namespace WorkshopsAdvanced
         [SettingPropertyGroup(StrCaravanGroupName, GroupOrder = 4)]
         public int CaravanPrice { get; set; } = 50;
         #endregion
-
-        #region Smart Workshops
-        [SettingProperty(StrSmartEnable, RequireRestart = false, Order = 1)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public bool SmartEnable { get; set; } = false;
-
-        [SettingProperty(StrSmartExtraBuy, 0, 100, RequireRestart = false, HintText = StrSmartExtraBuyDesc, Order = 2)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartExtraBuy { get; set; } = 2;
-
-        [SettingProperty(StrSmartStock, 0, 1000, RequireRestart = false, HintText = StrSmartStockDesc, Order = 3)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartStock { get; set; } = 10;
-
-        [SettingProperty(StrSmartExtraSell, 0, 100, RequireRestart = false, HintText = StrSmartExtraSellDesc, Order = 4)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartExtraSell { get; set; } = 1;
-
-        [SettingProperty(StrSmartSellOnChange, 0, 100, RequireRestart = false, HintText = StrSmartSellOnChangeDesc, Order = 5)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartSellOnChange { get; set; } = 1;
-
-        [SettingProperty(StrSmartMinOutput, 0, 30000, RequireRestart = false, HintText = StrSmartMinOutputDesc, Order = 6)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartMinOutput { get; set; } = 0;
-
-        [SettingProperty(StrSmartMaxOutput, 0, 30000, RequireRestart = false, HintText = StrSmartMaxOutputDesc, Order = 7)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartMaxOutput { get; set; } = 3000;
-
-        [SettingProperty(StrSmartMinSell, 0, 200, RequireRestart = false, HintText = StrSmartMinSellDesc, Order = 8)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartMinSell { get; set; } = 80;
-
-        [SettingProperty(StrSmartMaxSell, 0, 200, RequireRestart = false, HintText = StrSmartMaxSellDesc, Order = 9)]
-        [SettingPropertyGroup(StrSmartGroupName, GroupOrder = 5)]
-        public int SmartMaxSell { get; set; } = 120;
-        #endregion
     }
 
     [SaveableRootClass(1)]
@@ -1101,6 +1000,37 @@ namespace WorkshopsAdvanced
 
         [SaveableProperty(5)]
         internal bool IsSellingToCaravan { get; set; } = true;
+
+        [SaveableProperty(6)]
+        internal int Upgrades { get; set; } = (int)WorkshopUpgrades.None;
+
+        [SaveableProperty(7)]
+        internal float LeftOverProduct { get; set; } = 0f;
+
+        public bool HasUpgrade(WorkshopUpgrades upgrade)
+        {
+            var upgradeEnum = (WorkshopUpgrades)Upgrades;
+            return upgradeEnum.HasFlag(upgrade);
+        }
+
+        public void AddUpgrade(WorkshopUpgrades upgrade)
+        {
+            var upgradeEnum = (WorkshopUpgrades)Upgrades;
+            upgradeEnum |= upgrade;
+            Upgrades = (int)upgradeEnum;
+        }
+
+        public void RemoveUpgrade(WorkshopUpgrades upgrade)
+        {
+            var upgradeEnum = (WorkshopUpgrades)Upgrades;
+            upgradeEnum &= ~upgrade;
+            Upgrades = (int)upgradeEnum;
+        }
+
+        public void RemoveAllUpgrades()
+        {
+            Upgrades = (int)WorkshopUpgrades.None;
+        }
     }
 
     [SaveableRootClass(3)]
@@ -1125,6 +1055,14 @@ namespace WorkshopsAdvanced
 
     internal class WorkshopsAdvancedCampaignBehaviour : CampaignBehaviorBase
     {
+        private struct UpgradeInfo
+        {
+            public string MenuId { get; set; }
+            public TextObject Name { get; set; }
+            public string Description { get; set; }
+            public GameMenuOption.LeaveType LeaveType { get; set; }
+        }
+
         internal static WorkshopsAdvancedCampaignBehaviour Instance { get; private set; }
 
         static WorkshopsAdvancedCampaignBehaviour()
@@ -1157,6 +1095,13 @@ namespace WorkshopsAdvanced
         private readonly TextObject AdjustWorkforceSelected = GameTexts.FindText("WA_Adjust_Selected");
         private readonly TextObject InquiryStopRentingTitle = GameTexts.FindText("WA_Inquiry_Stop_Renting");
         private readonly TextObject InquiryStopRentingDesc = GameTexts.FindText("WA_Inquiry_Stop_Renting_Desc");
+        private readonly TextObject UpgradesMenuName = GameTexts.FindText("WA_Up_Name");
+        private readonly TextObject UpgradesBuy = GameTexts.FindText("WA_Up_Buy");
+        private readonly TextObject UpgradesBuyDesc = GameTexts.FindText("WA_Up_Buy_Desc");
+        private readonly TextObject UpgradesBuyNoMoney = GameTexts.FindText("WA_Up_Buy_No_Money");
+        private readonly TextObject UpgradesRemove = GameTexts.FindText("WA_Up_Remove");
+        private readonly TextObject UpgradesRemoveDesc = GameTexts.FindText("WA_Up_Remove_Desc");
+        private readonly TextObject UpgradesNone = GameTexts.FindText("WA_Up_None");
         private const string ManageWorkshopsDesc = "{=FCC955FAD7}Manage owned workshops.";
         private const string ManageTownWorkshopDesc = "{=0F7F695CD1}You can manage your workshop ({WORKSHOPNAME}) here. Expected profit: {PROFIT}";
         private const string AdjustWorkforceDesc = "{=BE032A38D8}Adjust workforce of your workshop";
@@ -1164,6 +1109,7 @@ namespace WorkshopsAdvanced
         private const string AdjustWorkforceNormal = "{=1C490DD392}Normal (Default)";
         private const string AdjustWorkforceHigh = "{=655D20C1CA}High";
         private const string AdjustWorkforceMax = "{=6A061313D2}Max";
+        private const string UpgradesMenuDesc = "{=6E0AD7BDF8}You can upgrade your workshop in various ways to increase profit. Currently you have: {UPGRADES}";
         private const string MenuGoBackStr = "{=4F2F5E1D6E}Go Back";
 
         private const string ManageWorkshopsId = "manage_workshops";
@@ -1183,7 +1129,24 @@ namespace WorkshopsAdvanced
         private const string AdjustWorkforceHighId = "adjust_workforce_high";
         private const string AdjustWorkforceMaxId = "adjust_workforce_max";
         private const string AdjustWorkforceGoBackId = "adjust_workforce_go_back";
+        private const string UpgradesId = "workshop_upgrades";
+        private const string UpgradesGoBackId = "workshop_upgrades_go_back";
+        private const string UpgradesBuyId = "workshop_upgrades_buy";
+        private const string UpgradesRemoveId = "workshop_upgrades_remove";
+
+        private static string UpgradesExtensionDesc = "{=024B8CA99E}Add a building extension to your workshop. This will cost {UP_COST}. Extension will let your workers be more efficient, resulting in higher production speed ({UPGRADE_VALUE}%). Be aware though higher production will cause higher consumption of materials and providing more products to the market. This will likely affect prices.";
+        private static string UpgradesToolsDesc = "{=AB17A0D1E1}Buy extra tools for your workers. This will cost {UP_COST}. Extra tools will improve production process, resulting in higher amount of product from same amount of materials ({UPGRADE_VALUE}%). Note that if the bonus is not a whole number, it will be saved until it can be used to produce an extra product.";
+        private static string UpgradesStallDesc = "{=E46084C797}Buy a market stall for your products. This will cost {UP_COST}. Market stall will give you a chance ({UPGRADE_VALUE}%) to sell your products directly to townsfolk instead of town market. Selling directly to townsfolk will decrease supply and help with keeping prices higher. Note that the chance of selling to townsfolk is calculated separately for every product.";
+        private static string UpgradesFurnitureDesc = "{=04FD0F131A}Provide better furniture for your workers. This will cost {UP_COST}. Providing better furniture will increase happiness of your workers, resulting in lower wages ({UPGRADE_VALUE}%).";
         #endregion
+
+        private readonly Dictionary<WorkshopUpgrades, UpgradeInfo> UpgradeNames = new Dictionary<WorkshopUpgrades, UpgradeInfo>()
+        {
+            { WorkshopUpgrades.Extension, new UpgradeInfo() { MenuId = WorkshopUpgrades.Extension + "_id", Name = GameTexts.FindText("WA_Up_Extension"), Description = UpgradesExtensionDesc, LeaveType = GameMenuOption.LeaveType.Manage} },
+            { WorkshopUpgrades.Tools, new UpgradeInfo() { MenuId = WorkshopUpgrades.Tools + "_id", Name = GameTexts.FindText("WA_Up_Tools"), Description = UpgradesToolsDesc, LeaveType = GameMenuOption.LeaveType.Craft} },
+            { WorkshopUpgrades.Stall, new UpgradeInfo() { MenuId = WorkshopUpgrades.Stall + "_id", Name = GameTexts.FindText("WA_Up_Stall"), Description = UpgradesStallDesc, LeaveType = GameMenuOption.LeaveType.Trade} },
+            { WorkshopUpgrades.Furniture, new UpgradeInfo() { MenuId = WorkshopUpgrades.Furniture + "_id", Name = GameTexts.FindText("WA_Up_Furniture"), Description = UpgradesFurnitureDesc, LeaveType = GameMenuOption.LeaveType.Manage} },
+        };
 
         [SaveableField(1)]
         internal Dictionary<Settlement, SettlementCustomizationData> SettlementDataDict = new Dictionary<Settlement, SettlementCustomizationData>();
@@ -1193,6 +1156,7 @@ namespace WorkshopsAdvanced
 
         public override void RegisterEvents()
         {
+            CampaignEvents.OnWorkshopChangedEvent.AddNonSerializedListener(this, new Action<Workshop, Hero, WorkshopType>(OnWorkshopChanged));
             CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, new Action<CampaignGameStarter>(AddWorkshopMenus));
         }
 
@@ -1212,6 +1176,11 @@ namespace WorkshopsAdvanced
                 if (SettlementDataDict == null) SettlementDataDict = new Dictionary<Settlement, SettlementCustomizationData>();
                 if (WorkshopDataDict == null) WorkshopDataDict = new Dictionary<Workshop, WorkshopCustomizationData>();
             }
+        }
+
+        protected void OnWorkshopChanged(Workshop workshop, Hero owner, WorkshopType type)
+        {
+            Helper.OnWorkshopChanged(workshop, owner, type);
         }
 
         protected void AddWorkshopMenus(CampaignGameStarter campaignGameStarter)
@@ -1306,7 +1275,7 @@ namespace WorkshopsAdvanced
                 Campaign.Current.SandBoxManager.GameStarter.AddGameMenu(workshopMenuId, ManageTownWorkshopDesc,
                     new OnInitDelegate((callbackArgs) =>
                     {
-                        var profit = Campaign.Current.Models.ClanFinanceModel.CalculateOwnerIncomeFromWorkshop(workshop); ;
+                        var profit = Campaign.Current.Models.ClanFinanceModel.CalculateOwnerIncomeFromWorkshop(workshop);
                         callbackArgs.MenuContext.GameMenu.GetText().SetTextVariable("WORKSHOPNAME", workshop.Name).SetTextVariable("PROFIT", profit);
                         callbackArgs.IsEnabled = true;
                         callbackArgs.optionLeaveType = GameMenuOption.LeaveType.Leave;
@@ -1347,6 +1316,7 @@ namespace WorkshopsAdvanced
             var settlementCustomizationData = GetSettlementCustomizationData(workshop.Settlement);
             var workshopGameMenu = Campaign.Current.SandBoxManager.GameStarter.GetPresumedGameMenu(workshopMenuId);
             AddAdjustWorkforceMenu(workshopGameMenu, workshop);
+            AddUpgradesMenu(workshopGameMenu, workshop);
 
             Campaign.Current.GameMenuManager.RemoveRelatedGameMenuOptions(ManageTownWorkshopProductionId);
             AddGameMenuOptionWithRelatedObject(workshopGameMenu, ManageTownWorkshopProductionId, workshopCustomizationData.IsWorking ? ManageTownWorkshopStopWorking : ManageTownWorkshopContinueWorking,
@@ -1550,6 +1520,140 @@ namespace WorkshopsAdvanced
                 }));
         }
 
+        private void AddUpgradesMenu(GameMenu workshopGameMenu, Workshop workshop)
+        {
+            Campaign.Current.GameMenuManager.RemoveRelatedGameMenus(UpgradesId);
+            Campaign.Current.SandBoxManager.GameStarter.AddGameMenu(UpgradesId, UpgradesMenuDesc,
+                new OnInitDelegate((callbackArgs) =>
+                {
+                    callbackArgs.IsEnabled = true;
+                    callbackArgs.MenuContext.GameMenu.GetText().SetTextVariable("UPGRADES", GetWorkshopUpgrades(workshop));
+                    callbackArgs.optionLeaveType = GameMenuOption.LeaveType.Leave;
+                }),
+                GameOverlays.MenuOverlayType.SettlementWithBoth, relatedObject: UpgradesId);
+
+            Campaign.Current.GameMenuManager.RemoveRelatedGameMenuOptions(UpgradesId);
+            AddGameMenuOptionWithRelatedObject(workshopGameMenu, UpgradesId, UpgradesMenuName,
+                new GameMenuOption.OnConditionDelegate((callbackArgs) =>
+                {
+                    callbackArgs.optionLeaveType = GameMenuOption.LeaveType.Submenu;
+                    callbackArgs.IsEnabled = true;
+                    return true;
+                }),
+                new GameMenuOption.OnConsequenceDelegate((callbackArgs) =>
+                {
+                    GameMenu.SwitchToMenu(UpgradesId);
+                }), -1, false, false, UpgradesId);
+
+            var upgradesMenu = Campaign.Current.SandBoxManager.GameStarter.GetPresumedGameMenu(UpgradesId);
+            foreach (var kvp in UpgradeNames)
+            {
+                AddUpgradeOptionMenu(upgradesMenu, kvp.Key, workshop);
+            }
+
+            Campaign.Current.SandBoxManager.GameStarter.AddGameMenuOption(UpgradesId, UpgradesGoBackId, MenuGoBackStr,
+                new GameMenuOption.OnConditionDelegate((callbackArgs) =>
+                {
+                    callbackArgs.optionLeaveType = GameMenuOption.LeaveType.Leave;
+                    callbackArgs.IsEnabled = true;
+                    return true;
+                }),
+                new GameMenuOption.OnConsequenceDelegate((callbackArgs) =>
+                {
+                    GameMenu.SwitchToMenu(workshopGameMenu.StringId);
+                }));
+        }
+
+        private void AddUpgradeOptionMenu(GameMenu upgradesMenu, WorkshopUpgrades upgrade, Workshop workshop)
+        {
+            var customizationData = GetWorkshopCustomizationData(workshop);
+            var upgradeInfo = UpgradeNames[upgrade];
+            var menuId = upgradeInfo.MenuId;
+            var menuGoBackId = upgrade + "_go_back_id";
+            var upgradeValue = Helper.GetWorkshopUpgradePercentage(upgrade);
+
+            Campaign.Current.GameMenuManager.RemoveRelatedGameMenus(menuId);
+            Campaign.Current.SandBoxManager.GameStarter.AddGameMenu(menuId, upgradeInfo.Description,
+                new OnInitDelegate((callbackArgs) =>
+                {
+                    var cost = Helper.GetWorkshopUpgradeCost(upgrade);
+                    callbackArgs.IsEnabled = true;
+                    callbackArgs.MenuContext.GameMenu.GetText().SetTextVariable("UP_COST", cost).SetTextVariable("UPGRADE_VALUE", upgradeValue);
+                    callbackArgs.optionLeaveType = GameMenuOption.LeaveType.Leave;
+                }),
+                GameOverlays.MenuOverlayType.SettlementWithBoth, relatedObject: menuId);
+
+            Campaign.Current.GameMenuManager.RemoveRelatedGameMenuOptions(menuId);
+            AddGameMenuOptionWithRelatedObject(upgradesMenu, menuId, upgradeInfo.Name,
+                new GameMenuOption.OnConditionDelegate((callbackArgs) =>
+                {
+                    callbackArgs.optionLeaveType = upgradeInfo.LeaveType;
+                    callbackArgs.IsEnabled = true;
+                    return true;
+                }),
+                new GameMenuOption.OnConsequenceDelegate((callbackArgs) =>
+                {
+                    GameMenu.SwitchToMenu(menuId);
+                }), -1, false, false, menuId);
+
+            Campaign.Current.SandBoxManager.GameStarter.AddGameMenuOption(menuId, UpgradesBuyId, UpgradesBuy.ToString(),
+                new GameMenuOption.OnConditionDelegate((callbackArgs) =>
+                {
+                    var hasUpgrade = customizationData.HasUpgrade(upgrade);
+                    callbackArgs.optionLeaveType = GameMenuOption.LeaveType.Trade;
+                    callbackArgs.IsEnabled = !hasUpgrade;
+                    return true;
+                }),
+                new GameMenuOption.OnConsequenceDelegate((callbackArgs) =>
+                {
+                    var canBuy = Helper.CanBuyWorkshopUpgrade(upgrade, out var cost);
+                    if (canBuy)
+                    {
+                        InformationManager.ShowInquiry(new InquiryData(UpgradesBuy.ToString(), UpgradesBuyDesc.SetTextVariable("UP_COST", cost).ToString(),
+                            true, true, GameTexts.FindText("str_accept", null).ToString(), GameTexts.FindText("str_reject", null).ToString(), () =>
+                            {
+                                Helper.BuyWorkshopUpgrade(workshop, upgrade);
+                                callbackArgs.MenuContext.Refresh();
+                            }, null), false);
+                    }
+                    else
+                    {
+                        InformationManager.ShowInquiry(new InquiryData(UpgradesBuy.ToString(), UpgradesBuyNoMoney.SetTextVariable("UP_COST", cost).ToString(),
+                            true, false, GameTexts.FindText("str_accept", null).ToString(), null, null, null), false);
+                    }
+                }));
+
+            Campaign.Current.SandBoxManager.GameStarter.AddGameMenuOption(menuId, UpgradesRemoveId, UpgradesRemove.ToString(),
+                new GameMenuOption.OnConditionDelegate((callbackArgs) =>
+                {
+                    var hasUpgrade = customizationData.HasUpgrade(upgrade);
+                    callbackArgs.optionLeaveType = GameMenuOption.LeaveType.Default;
+                    callbackArgs.IsEnabled = hasUpgrade;
+                    return true;
+                }),
+                new GameMenuOption.OnConsequenceDelegate((callbackArgs) =>
+                {
+                    InformationManager.ShowInquiry(new InquiryData(UpgradesRemove.ToString(), UpgradesRemoveDesc.ToString(),
+                        true, true, GameTexts.FindText("str_accept", null).ToString(), GameTexts.FindText("str_reject", null).ToString(), () =>
+                        {
+                            Helper.RemoveWorkshopUpgrade(workshop, upgrade);
+                            callbackArgs.MenuContext.Refresh();
+                        }, null), false);
+                }));
+
+            Campaign.Current.SandBoxManager.GameStarter.AddGameMenuOption(menuId, menuGoBackId, MenuGoBackStr,
+                new GameMenuOption.OnConditionDelegate((callbackArgs) =>
+                {
+                    callbackArgs.optionLeaveType = GameMenuOption.LeaveType.Leave;
+                    callbackArgs.IsEnabled = true;
+                    return true;
+                }),
+                new GameMenuOption.OnConsequenceDelegate((callbackArgs) =>
+                {
+                    GameMenu.SwitchToMenu(upgradesMenu.StringId);
+                }));
+        }
+
         public SettlementCustomizationData GetSettlementCustomizationData(Settlement settlement)
         {
             if (!SettlementDataDict.TryGetValue(settlement, out var result))
@@ -1570,6 +1674,31 @@ namespace WorkshopsAdvanced
             }
 
             return result;
+        }
+
+        private string GetWorkshopUpgrades(Workshop workshop)
+        {
+            if (!workshop.Owner.IsHumanPlayerCharacter)
+            {
+                return "";
+            }
+
+            var customizationData = Instance.GetWorkshopCustomizationData(workshop);
+            if (customizationData == null)
+            {
+                return "";
+            }
+
+            var names = new List<string>();
+            foreach (var kvp in UpgradeNames)
+            {
+                if (customizationData.HasUpgrade(kvp.Key))
+                {
+                    names.Add(kvp.Value.Name.ToString());
+                }
+            }
+
+            return names.Count > 0 ? string.Join(", ", names) : UpgradesNone.ToString();
         }
 
         // Temporary fix until game code is fixed, hopefully
