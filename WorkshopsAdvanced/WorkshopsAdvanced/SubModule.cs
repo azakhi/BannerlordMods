@@ -1229,7 +1229,7 @@ namespace WorkshopsAdvanced
                                 Helper.SellWarehouseContent(settlement);
                                 settlementCustomizationData.IsRentingWarehouse = false;
                                 callbackArgs.MenuContext.Refresh();
-                            }, null), false);
+                            }, null), false, false);
                     }
                     else
                     {
@@ -1614,12 +1614,12 @@ namespace WorkshopsAdvanced
                             {
                                 Helper.BuyWorkshopUpgrade(workshop, upgrade);
                                 callbackArgs.MenuContext.Refresh();
-                            }, null), false);
+                            }, null), false, false);
                     }
                     else
                     {
                         InformationManager.ShowInquiry(new InquiryData(UpgradesBuy.ToString(), UpgradesBuyNoMoney.SetTextVariable("UP_COST", cost).ToString(),
-                            true, false, GameTexts.FindText("str_accept", null).ToString(), null, null, null), false);
+                            true, false, GameTexts.FindText("str_accept", null).ToString(), null, null, null), false, false);
                     }
                 }));
 
@@ -1638,7 +1638,7 @@ namespace WorkshopsAdvanced
                         {
                             Helper.RemoveWorkshopUpgrade(workshop, upgrade);
                             callbackArgs.MenuContext.Refresh();
-                        }, null), false);
+                        }, null), false, false);
                 }));
 
             Campaign.Current.SandBoxManager.GameStarter.AddGameMenuOption(menuId, menuGoBackId, MenuGoBackStr,
