@@ -27,9 +27,26 @@ namespace WorkshopsAdvanced
 {
     public class SubModule : MBSubModuleBase
     {
+        private bool _isCorrectVersion = false;
+        private string _detectedVersion = "Unknown Version";
+
         protected override void OnSubModuleLoad()
         {
             base.OnSubModuleLoad();
+
+            var nativeModule = TaleWorlds.ModuleManager.ModuleHelper.GetModuleInfo("native");
+            if (nativeModule != null)
+            {
+                _detectedVersion = ApplicationVersion.GetPrefix(nativeModule.Version.ApplicationVersionType) + nativeModule.Version.Major + "." + nativeModule.Version.Minor + "." + nativeModule.Version.Revision;
+            }
+
+            if (!_detectedVersion.StartsWith("e1.8.1"))
+            {
+                _isCorrectVersion = false;
+                return;
+            }
+
+            _isCorrectVersion = true;
 
             Harmony harmony = new Harmony("WorkshopsAdvanced");
             //Harmony.DEBUG = true;
@@ -98,10 +115,19 @@ namespace WorkshopsAdvanced
 
         protected override void OnGameStart(Game game, IGameStarter gameStarterObject)
         {
-            if (game.GameType is Campaign)
+            if (_isCorrectVersion && game.GameType is Campaign)
             {
                 var campaignBehaviour = new WorkshopsAdvancedCampaignBehaviour();
                 ((CampaignGameStarter)gameStarterObject).AddBehavior(campaignBehaviour);
+            }
+        }
+
+        public override void OnInitialState()
+        {
+            base.OnInitialState();
+            if (!_isCorrectVersion)
+            {
+                InformationManager.DisplayMessage(new InformationMessage($"You have Workshops Advanced for e1.8.1 installed while the game version is {_detectedVersion}. Workshops Advanced will be disabled"));
             }
         }
     }
