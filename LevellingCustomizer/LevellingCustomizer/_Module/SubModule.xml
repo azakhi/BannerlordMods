@@ -12,15 +12,13 @@
   <!-- e1.8.0 -->
   <ModuleCategory value="Singleplayer"/>
   <DependedModules>
-    <DependedModule Id="Bannerlord.Harmony" />
-    <DependedModule Id="Bannerlord.ButterLib" />
-    <DependedModule Id="Bannerlord.UIExtenderEx" />
-    <DependedModule Id="Bannerlord.MBOptionScreen" />
-    <DependedModule Id="Native" />
-    <DependedModule Id="SandBoxCore" />
-    <DependedModule Id="Sandbox" />
-    <DependedModule Id="StoryMode" />
-    <DependedModule Id="CustomBattle" />
+    <DependedModule Id="Bannerlord.Harmony" DependentVersion="v2.2.2.139" Optional="false" />
+    <DependedModule Id="Bannerlord.ButterLib" DependentVersion="v2.2.6" Optional="false" />
+    <DependedModule Id="Bannerlord.UIExtenderEx" DependentVersion="v2.2.12" Optional="false" />
+    <DependedModule Id="Bannerlord.MBOptionScreen" DependentVersion="v4.7.10" Optional="false" />
+    <DependedModule Id="Native" DependentVersion="e1.9.0" Optional="false" />
+    <DependedModule Id="SandBoxCore" DependentVersion="e1.9.0" Optional="false" />
+    <DependedModule Id="Sandbox" DependentVersion="e1.9.0" Optional="false" />
   </DependedModules>
   <!-- Community Dependency Metadata -->
   <!-- https://github.com/BUTR/Bannerlord.BUTRLoader#for-modders -->
@@ -32,8 +30,6 @@
     <DependedModuleMetadata id="Native" order="LoadBeforeThis" />
     <DependedModuleMetadata id="SandBoxCore" order="LoadBeforeThis" />
     <DependedModuleMetadata id="Sandbox" order="LoadBeforeThis" />
-    <DependedModuleMetadata id="StoryMode" order="LoadBeforeThis" />
-    <DependedModuleMetadata id="CustomBattle" order="LoadBeforeThis" />
   </DependedModuleMetadatas>
   <!-- Community Dependency Metadata -->
   <SubModules>
