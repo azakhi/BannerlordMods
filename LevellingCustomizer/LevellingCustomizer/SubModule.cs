@@ -5,10 +5,9 @@ using System.Reflection;
 using HarmonyLib;
 using MCM.Abstractions.Attributes;
 using MCM.Abstractions.Attributes.v1;
-using MCM.Abstractions.Dropdown;
-using MCM.Abstractions.Settings.Base;
-using MCM.Abstractions.Settings.Base.Global;
-
+using MCM.Abstractions.Base;
+using MCM.Abstractions.Base.Global;
+using MCM.Common;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CharacterDevelopment;
 using TaleWorlds.CampaignSystem.GameComponents;
@@ -146,7 +145,7 @@ namespace LevellingCustomizer
 
         [SettingProperty(StrGeneralApplyTo, RequireRestart = false, HintText = StrGeneralApplyToDesc, Order = 1)]
         [SettingPropertyGroup(StrGeneral, GroupOrder = 1)]
-        public DropdownDefault<string> GeneralApplyTo { get; set; } = new DropdownDefault<string>(new string[] { "{=5F2B080E2E}All Heroes", "{=636DA1D35E}Player", "{=0380FD801C}Player & Player Clan", "{=65C08D4C2A}Player Clan", "{=5016142882}Player Clan Except Companions", "{=3FE8BC9F22}Only Companions" }, selectedIndex: 0);
+        public Dropdown<string> GeneralApplyTo { get; set; } = new Dropdown<string>(new string[] { "{=5F2B080E2E}All Heroes", "{=636DA1D35E}Player", "{=0380FD801C}Player & Player Clan", "{=65C08D4C2A}Player Clan", "{=5016142882}Player Clan Except Companions", "{=3FE8BC9F22}Only Companions" }, selectedIndex: 0);
 
         [SettingProperty(StrLevellingXPMultiplier, 0f, 100f, RequireRestart = false, HintText = StrLevellingXPMultiplierDesc, Order = 2)]
         [SettingPropertyGroup(StrGeneral, GroupOrder = 1)]
@@ -170,7 +169,7 @@ namespace LevellingCustomizer
 
         [SettingProperty(StrAttrFocusApplyTo, RequireRestart = false, HintText = StrAttrFocusApplyToDesc, Order = 1)]
         [SettingPropertyGroup(StrAttrAndFocus, GroupOrder = 2)]
-        public DropdownDefault<string> AttrFocusApplyTo { get; set; } = new DropdownDefault<string>(new string[] { "{=5F2B080E2E}All Heroes", "{=636DA1D35E}Player", "{=0380FD801C}Player & Player Clan", "{=65C08D4C2A}Player Clan", "{=5016142882}Player Clan Except Companions", "{=3FE8BC9F22}Only Companions" }, selectedIndex: 0);
+        public Dropdown<string> AttrFocusApplyTo { get; set; } = new Dropdown<string>(new string[] { "{=5F2B080E2E}All Heroes", "{=636DA1D35E}Player", "{=0380FD801C}Player & Player Clan", "{=65C08D4C2A}Player Clan", "{=5016142882}Player Clan Except Companions", "{=3FE8BC9F22}Only Companions" }, selectedIndex: 0);
 
         [SettingProperty(StrAttrExtraLearningRate, -100f, 100f, RequireRestart = false, HintText = StrAttrExtraLearningRateDesc, Order = 2)]
         [SettingPropertyGroup(StrAttrAndFocus, GroupOrder = 2)]
@@ -206,7 +205,7 @@ namespace LevellingCustomizer
 
         [SettingProperty(StrSkillApplyTo, RequireRestart = false, HintText = StrSkillApplyToDesc, Order = 1)]
         [SettingPropertyGroup(StrSkillSpecific, GroupOrder = 4)]
-        public DropdownDefault<string> SkillApplyTo { get; set; } = new DropdownDefault<string>(new string[] { "{=5F2B080E2E}All Heroes", "{=636DA1D35E}Player", "{=0380FD801C}Player & Player Clan", "{=65C08D4C2A}Player Clan", "{=5016142882}Player Clan Except Companions", "{=3FE8BC9F22}Only Companions" }, selectedIndex: 0);
+        public Dropdown<string> SkillApplyTo { get; set; } = new Dropdown<string>(new string[] { "{=5F2B080E2E}All Heroes", "{=636DA1D35E}Player", "{=0380FD801C}Player & Player Clan", "{=65C08D4C2A}Player Clan", "{=5016142882}Player Clan Except Companions", "{=3FE8BC9F22}Only Companions" }, selectedIndex: 0);
 
         [SettingProperty(StrOneHandedMultiplier, 0f, 100f, RequireRestart = false, HintText = StrOneHandedMultiplierDesc, Order = 2)]
         [SettingPropertyGroup(StrSkillSpecific, GroupOrder = 4)]
@@ -289,17 +288,6 @@ namespace LevellingCustomizer
         public int MaxSkillLevel { get; set; } = 400;
 
         #endregion
-
-        public override IDictionary<string, Func<BaseSettings>> GetAvailablePresets()
-        {
-            var basePresets = base.GetAvailablePresets(); // include the 'Default' preset that MCM provides
-            basePresets.Add("Smoother Levelling", () => new MySettings()
-            {
-                LevellingSmoothingLevel = 30,
-                SkillSmoothingLevel = 20,
-            });
-            return basePresets;
-        }
     }
 
     public class LevelXpPatch
