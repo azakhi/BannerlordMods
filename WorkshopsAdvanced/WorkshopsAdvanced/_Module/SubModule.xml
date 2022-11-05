@@ -12,10 +12,10 @@
   <!-- e1.8.0 -->
   <ModuleCategory value="Singleplayer"/>
   <DependedModules>
-    <DependedModule Id="Bannerlord.Harmony" DependentVersion="v2.2.2.139" Optional="false" />
-    <DependedModule Id="Bannerlord.ButterLib" DependentVersion="v2.2.10" Optional="false" />
-    <DependedModule Id="Bannerlord.UIExtenderEx" DependentVersion="v2.2.12" Optional="false" />
-    <DependedModule Id="Bannerlord.MBOptionScreen" DependentVersion="v4.7.11" Optional="false" />
+    <DependedModule Id="Bannerlord.Harmony" DependentVersion="v2.2.2.140" Optional="false" />
+    <DependedModule Id="Bannerlord.ButterLib" DependentVersion="v2.3.1" Optional="false" />
+    <DependedModule Id="Bannerlord.UIExtenderEx" DependentVersion="v2.3.0" Optional="false" />
+    <DependedModule Id="Bannerlord.MBOptionScreen" DependentVersion="v5.0.4" Optional="false" />
     <DependedModule Id="Native" DependentVersion="v1.0.0" Optional="false" />
     <DependedModule Id="SandBoxCore" DependentVersion="v1.0.0" Optional="false" />
     <DependedModule Id="Sandbox" DependentVersion="v1.0.0" Optional="false" />

@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using MCM.Abstractions.Attributes;
 using MCM.Abstractions.Attributes.v1;
-using MCM.Abstractions.Settings.Base.Global;
+using MCM.Abstractions.Base.Global;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
